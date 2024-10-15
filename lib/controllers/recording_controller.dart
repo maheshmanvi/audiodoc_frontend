@@ -1,19 +1,25 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io' as io;
 import 'dart:html';
+import 'dart:io' as io;
 import 'dart:typed_data';
+
+import 'package:audiodoc/constants/app_constants.dart';
+import 'package:audiodoc/models/attachment_file.dart';
+import 'package:audiodoc/models/attachment_type.dart';
+import 'package:audiodoc/models/save_recording_request.dart';
+import 'package:audiodoc/widgets/attachment_preview/attachment_preview_dialog_view.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:http/http.dart' as http;
-import 'package:mongo_dart/mongo_dart.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../dto/recording_dto.dart';
 import '../models/recording.dart';
 import '../services/database_manager.dart';
 
 class RecordingController extends GetxController {
-
   RxList<RecordingDto> recordings = <RecordingDto>[].obs;
   Rx<Recording?> selectedRecording = Rx<Recording?>(null);
 
@@ -30,7 +36,7 @@ class RecordingController extends GetxController {
 
   var isPlaying = false.obs;
   var audioUrl = ''.obs;
-  var isAudioLoaded  = false.obs;
+  var isAudioLoaded = false.obs;
   var currentPosition = 0.0.obs;
   var totalDuration = 1.0.obs;
 
@@ -45,10 +51,7 @@ class RecordingController extends GetxController {
 
   late TextEditingController fileNameController;
 
-
   var audioSelectedForPlaying = false.obs;
-
-
 
   @override
   void onInit() {
@@ -66,11 +69,10 @@ class RecordingController extends GetxController {
   }
 
   @override
-  void dispose(){
+  void dispose() {
     super.dispose();
     player.dispose();
   }
-
 
   // Start recording audio
   Future<void> startRecording() async {
@@ -139,38 +141,31 @@ class RecordingController extends GetxController {
         // Convert audio data to base64 string
         String audioBase64 = base64Encode(audioData);
 
-        bool success = await dbManager.saveRecording(fileName.value, audioBase64);
+        SaveRecordingRequest saveRecordingRequest = SaveRecordingRequest(
+          attachmentFile: selectedAttachment.value,
+          recordingData: audioBase64,
+          recordingName: fileName.value,
+        );
+        bool success = await dbManager.saveRecording(saveRecordingRequest);
 
         if (success) {
           saveSuccess.value = true;
-          Get.snackbar('Success', 'Audio saved successfully!',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.green,
-              colorText: Colors.white);
+          Get.snackbar('Success', 'Audio saved successfully!', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green, colorText: Colors.white);
           fetchAllRecordings();
         } else {
           saveSuccess.value = false;
-          Get.snackbar('Error', 'Failed to save audio!',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.red,
-              colorText: Colors.white);
+          Get.snackbar('Error', 'Failed to save audio!', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
         }
       });
-
     } catch (e) {
       saveSuccess.value = false;
       errorMessage.value = "Error saving recording: $e";
       log(errorMessage.value);
-      Get.snackbar('Error', 'Failed to save audio!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      Get.snackbar('Error', 'Failed to save audio!', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isSaving.value = false;
     }
   }
-
-
 
   // Download the recorded audio file
   void downloadRecording() {
@@ -194,13 +189,10 @@ class RecordingController extends GetxController {
     }
   }
 
-
   // Fetch a recording by its ID
   Future<Recording?> fetchRecordingById(String id) async {
     return await dbManager.fetchRecordingById(id);
   }
-
-
 
   //----------------------------------------------------------------------------
 
@@ -268,6 +260,84 @@ class RecordingController extends GetxController {
     }
   }
 
-  void playRecording(RecordingDto recording) {}
+  void playRecording(RecordingDto r) async {
+    final recording = await fetchRecordingById(r.id);
+  }
+
+  final selectedAttachment = Rx<AttachmentFile?>(null);
+
+  showFilePicker() async {
+    final filePickerResult = await FilePicker.platform.pickFiles(
+      allowedExtensions: AttachmentType.values.map((e) => e.extension).toList(),
+      type: FileType.custom,
+    );
+    if (filePickerResult == null) return;
+
+    PlatformFile file = filePickerResult.files.first;
+    if (file.extension == null) {
+      Get.snackbar('Invalid File', 'Please select a file with an extension', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    selectedAttachment.value = AttachmentFile.fromPlatformFile(file);
+  }
+
+  removeAttachment() {
+    selectedAttachment.value = null;
+  }
+
+  Future<void> openAttachment(Attachment attachment, {required BuildContext context}) async {
+    String baseUrl = AppConstants.baseUrl;
+    String attachmentUrl = '$baseUrl/${attachment.path}';
+
+    if (attachment.type.isDoc) {
+      _openDocument(attachment, attachmentUrl);
+      return;
+    }
+
+    if (attachment.type.isPDF || attachment.type.isImage) {
+      _openPDF(context: context, attachment: attachment, attachmentUrl: attachmentUrl);
+      return;
+    }
+  }
+
+  Future<void> _openDocument(Attachment attachment, String url) async {
+    openURL(getDocViewerURL(url));
+  }
+
+  Future<void> _openPDF({required BuildContext context, required Attachment attachment, required String attachmentUrl}) async {
+    AttachmentPreviewDialogView.showAttachmentPreviewDialog(
+      context: context,
+      file: AttachmentFileRequest(
+        name: attachment.name,
+        type: attachment.type,
+        networkUrl: attachmentUrl,
+      ),
+    );
+  }
+
+  Future<void> openURL(String url) async {
+    Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      launchUrl(uri);
+    } else {
+      Get.snackbar('Error', 'Failed to open attachment', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+    }
+  }
+
+  String getDocViewerURL(String url) {
+    return "https://docs.google.com/viewer?url=" + url;
+  }
+
+  viewSelectedAttachment(BuildContext context) {
+    if (selectedAttachment.value == null) {
+      return;
+    }
+
+    if (selectedAttachment.value!.type.isPDF || selectedAttachment.value!.type.isImage) {
+      AttachmentPreviewDialogView.showAttachmentPreviewDialog(context: context, file: AttachmentFileRequest(name: selectedAttachment.value!.name, type: selectedAttachment.value!.type, bytes: selectedAttachment.value!.file.bytes));
+    }
+  }
+
 
 }

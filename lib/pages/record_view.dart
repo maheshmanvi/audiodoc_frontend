@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../controllers/recording_controller.dart';
 import '../widgets/audio_player_widget.dart';
+import 'attach_files_view.dart';
 
 
 class RecordView extends StatelessWidget {
@@ -20,6 +21,8 @@ class RecordView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+
+
             Obx(() {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -74,9 +77,23 @@ class RecordView extends StatelessWidget {
 
             Divider(height: 60, color: Colors.grey[300],),
 
-            Obx(() => controller.audioUrl.value.isNotEmpty || controller.audioSelectedForPlaying.value
-                  ? AudioPlayerWidget()
-                  : Center(
+            Obx(() {
+              if (controller.audioUrl.value.isNotEmpty || controller.audioSelectedForPlaying.value) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AudioPlayerWidget(),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        AttachFilesView(),
+                      ],
+                    ),
+                  ],
+                );
+              } else {
+                return Center(
                 child: Container(
                   height: 178,
                   alignment: Alignment.center,
@@ -86,7 +103,9 @@ class RecordView extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
-              ),
+              );
+              }
+            },
             ),
 
             const SizedBox(height: 16,),

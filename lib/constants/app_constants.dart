@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-
 class AppConstants {
-  static const String baseUrl = 'http://192.168.43.239:8080/api';
+  static const String baseUrl = 'https://vivekaa.in:7300';
+  static const String apiBaseUrl = "$baseUrl/api";
 }
