@@ -1,16 +1,25 @@
+import 'package:audiodoc/infrastructure/di.dart';
+import 'package:audiodoc/infrastructure/env.dart';
+import 'package:audiodoc/ui/app_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'controllers/recording_controller.dart';
 import 'pages/home_page.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Get.put(RecordingController());
-  runApp(MyApp());
+
+  await Env.hardcoded();
+
+  inject();
+
+  runApp(AppView());
+
+  /* Get.put(RecordingController());
+  runApp(MyApp());*/
 }
 
+/*
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -28,3 +37,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+*/
