@@ -44,4 +44,14 @@ class Env {
       brandHomePageUrl: 'https://vivekaa.in',
     );
   }
+
+  static Future<void> live() async {
+    await Env.init(
+      apiScheme: 'https',
+      apiHost: 'vivekaa.in',
+      apiPort: '7300',
+      apiPrefix: 'api',
+      brandHomePageUrl: 'https://vivekaa.in',
+    );
+  }
 }
