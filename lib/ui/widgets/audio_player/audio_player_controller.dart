@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:html';
+import 'dart:html' as html;
+import 'dart:ui';
 
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
@@ -10,6 +11,7 @@ class AudioPlayerViewController extends GetxController {
   final AudioPlayer player = AudioPlayer();
   final String url;
   late final AudioSource audioSource;
+  final RxBool isRenaming = false.obs;
 
   // Observable for tracking the current position
   final Rx<Duration> currentPosition = Rx<Duration>(Duration.zero);
@@ -19,8 +21,10 @@ class AudioPlayerViewController extends GetxController {
   final Rx<ProcessingState> processingState = Rx<ProcessingState>(ProcessingState.idle);
   final Rx<bool> isPlaying = Rx<bool>(false);
 
+  final VoidCallback onRenameComplete;
+
   AudioPlayerViewController({
-    required this.url,
+    required this.url, required this.onRenameComplete,
   }) {
     audioSource = AudioSource.uri(Uri.parse(url));
   }
@@ -88,7 +92,7 @@ class AudioPlayerViewController extends GetxController {
     await player.play();
   }
 
-  Future<void> rewind({int seconds = 2}) async {
+  Future<void> rewind({int seconds = 5}) async {
     Duration newDuration;
     if (player.position - Duration(seconds: seconds) > Duration.zero) {
       newDuration = player.position - Duration(seconds: seconds);
@@ -99,7 +103,7 @@ class AudioPlayerViewController extends GetxController {
     currentPosition.value = newDuration;
   }
 
-  Future<void> fastForward({int seconds = 2}) async {
+  Future<void> fastForward({int seconds = 5}) async {
     Duration newDuration;
     if (player.position + Duration(seconds: seconds) < totalDuration.value) {
       newDuration = player.position + Duration(seconds: seconds);
@@ -161,10 +165,17 @@ class AudioPlayerViewController extends GetxController {
     }
   }
 
-  // download
-  void download() {
-    final anchor = AnchorElement(href: url)
-      ..setAttribute("download", "recording.wav")
-      ..click();
+  void downloadAudio() {
+    html.AnchorElement anchorElement = html.AnchorElement(href: url);
+    anchorElement.download = "recording.wav";
+    anchorElement.target = '_blank';
+    anchorElement.click();
+  }
+
+  void toggleRename() {
+    if(isRenaming.value) {
+      onRenameComplete();
+    }
+    isRenaming.value = !isRenaming.value;
   }
 }

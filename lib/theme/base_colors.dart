@@ -485,5 +485,7 @@ class BaseColors {
   static const Color errorTint95 = Color(0xFFfef7f3);
   static const Color errorTint100 = Color(0xFFffffff);
 
+  static const Color background = Color(0xFFf2f4f7);
+
   BaseColors._();
 }

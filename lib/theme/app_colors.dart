@@ -137,6 +137,8 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color contentSecondary;
   final Color contentTertiary;
 
+  final Color dialogBarrier = BaseColors.black.withOpacity(0.2);
+
   AppColors({
     this.primary = BaseColors.primary,
     this.primaryTint100 = BaseColors.primaryTint100,
@@ -252,7 +254,7 @@ class AppColors extends ThemeExtension<AppColors> {
     this.successTint100 = BaseColors.successTint100,
     this.onSuccess = BaseColors.successTint100,
     this.surface = BaseColors.white,
-    this.background = BaseColors.gray100,
+    this.background = BaseColors.background,
     this.divider = BaseColors.gray200,
     this.loginFormFieldBorder = BaseColors.gray300,
     this.contentPrimary = BaseColors.gray900,

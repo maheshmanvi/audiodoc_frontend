@@ -5,9 +5,10 @@ import 'package:get/get_utils/src/extensions/context_extensions.dart';
 
 class MobileNavBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  final Widget? titleWidget;
   final VoidCallback onBack;
 
-  const MobileNavBackAppBar({super.key, required this.title, required this.onBack});
+  const MobileNavBackAppBar({super.key, required this.title, required this.onBack, this.titleWidget});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,17 @@ class MobileNavBackAppBar extends StatelessWidget implements PreferredSizeWidget
         children: [
           MobileAppBarBackButton(onTap: () => onBack()),
           const SizedBox(width: 12),
-          Text(title, style: context.theme.typo.appBarTitle.copyWith(color: context.theme.colors.onPrimary)),
+          Expanded(
+            child: titleWidget ??
+                Text(
+                  title,
+                  style: context.theme.typo.appBarTitle.copyWith(
+                    color: context.theme.colors.onPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+          ),
           const Spacer(),
           const SizedBox(width: 16),
         ],

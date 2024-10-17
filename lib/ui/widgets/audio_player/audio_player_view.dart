@@ -9,11 +9,13 @@ import 'audio_player_controller.dart';
 class AudioPlayerView extends StatefulWidget {
   final TextEditingController liveFileName;
   final String url;
+  final VoidCallback onRenameComplete;
 
   const AudioPlayerView({
     super.key,
     required this.liveFileName,
     required this.url,
+    required this.onRenameComplete,
   });
 
   @override
@@ -27,18 +29,23 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
   void initState() {
     super.initState();
     Get.delete<AudioPlayerViewController>();
-    controller = AudioPlayerViewController(url: widget.url);
+    controller = AudioPlayerViewController(url: widget.url, onRenameComplete: widget.onRenameComplete);
     Get.put(controller);
   }
 
   @override
   void dispose() {
+    controller.player.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(4),
+      ),
+      color: context.theme.colors.surface,
       margin: EdgeInsets.zero,
       elevation: 2,
       child: Column(
@@ -83,15 +90,28 @@ class _AudioThumbnailView extends GetView<AudioPlayerViewController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ValueListenableBuilder(
-                      valueListenable: liveFileName,
-                      builder: (context, value, child) {
-                        return Text(
-                          value.text,
-                          style: context.theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: context.theme.typo.fw.medium,
-                          ),
-                          textAlign: TextAlign.start,
+                    Obx(
+                      () {
+                        if(controller.isRenaming.value) {
+                          return TextField(
+                            controller: liveFileName,
+                            style: context.theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: context.theme.typo.fw.semibold,
+                            ),
+                            textAlign: TextAlign.start,
+                          );
+                        }
+                        return ValueListenableBuilder(
+                          valueListenable: liveFileName,
+                          builder: (context, value, child) {
+                            return Text(
+                              value.text,
+                              style: context.theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: context.theme.typo.fw.semibold,
+                              ),
+                              textAlign: TextAlign.start,
+                            );
+                          },
                         );
                       },
                     ),
@@ -99,6 +119,24 @@ class _AudioThumbnailView extends GetView<AudioPlayerViewController> {
                     _PlayerDurationView(),
                   ],
                 ),
+              ),
+              const SizedBox(width: 16),
+              IconButton(
+                icon: Obx(() {
+                  if (controller.isRenaming.value) {
+                    return Icon(Icons.check, size: 18);
+                  }
+                  return Icon(Icons.edit_outlined, size: 18);
+                }),
+                onPressed: () {
+                  controller.toggleRename();
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.download_outlined, size: 18),
+                onPressed: () {
+                  controller.downloadAudio();
+                },
               ),
             ],
           ),
@@ -197,8 +235,8 @@ class _PlayerDurationView extends GetView<AudioPlayerViewController> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Obx(() => Text(formatDuration(controller.currentPosition.value))),
-        Obx(() => Text("/" + formatDuration(controller.totalDuration.value))),
+        Obx(() => Text(formatDuration(controller.currentPosition.value), style: context.theme.textTheme.bodySmall)),
+        Obx(() => Text("/" + formatDuration(controller.totalDuration.value), style: context.theme.textTheme.bodySmall)),
       ],
     );
   }

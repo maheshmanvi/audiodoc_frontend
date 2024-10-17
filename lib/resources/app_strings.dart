@@ -9,4 +9,10 @@ class AppStrings {
 
   static String notesListAppBarTitle  = "List of Notes";
 
+  static String btnSaveNote = "Save Note";
+
+  static String btnCancel = "Cancel";
+
+  static String btnAttachFile = "Attach File";
+
 }

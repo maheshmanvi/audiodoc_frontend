@@ -8,12 +8,16 @@ import 'package:audiodoc/domain/entity/l_attachment.dart';
 import 'package:audiodoc/domain/entity/recording_result.dart';
 import 'package:audiodoc/domain/usecases/note_usecases.dart';
 import 'package:audiodoc/infrastructure/sl.dart';
+import 'package:audiodoc/theme/theme_extension.dart';
 import 'package:audiodoc/ui/pages/_notes/notes_controller.dart';
 import 'package:audiodoc/ui/pages/_notes/recording_controller.dart';
 import 'package:audiodoc/ui/router/app_router.dart';
+import 'package:audiodoc/ui/widgets/attachment/attachment_preview_dialog_view.dart';
+import 'package:audiodoc/ui/widgets/confirm_dialog.dart';
 import 'package:audiodoc/ui/widgets/snackbar/app_snackbar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
@@ -21,7 +25,12 @@ import 'package:just_audio/just_audio.dart';
 class NewNotesController extends GetxController {
   final bool start;
 
-  NewNotesController({required this.start});
+  final BuildContext context;
+
+  NewNotesController({
+    required this.start,
+    required this.context,
+  });
 
   final player = AudioPlayer();
 
@@ -70,8 +79,19 @@ class NewNotesController extends GetxController {
 
   Rx<LAttachment?> selectedLAttachment = Rx<LAttachment?>(null);
 
+  final formKey = GlobalKey<FormState>();
+
+
   void saveRecording(BuildContext context) async {
     if (recordingResult.value == null) {
+      return;
+    }
+
+    if (!formKey.currentState!.validate()) {
+      AppSnackBar.showErrorToast(
+        context,
+        message: 'Please fill in all required fields and correct any errors in the form.',
+      );
       return;
     }
 
@@ -99,12 +119,26 @@ class NewNotesController extends GetxController {
     } catch (e) {
       AppException exception = AppException.fromAnyException(e);
       saveState.value = DataState.error(exception: exception);
+      AppSnackBar.showError(
+        context,
+        message: exception.message,
+        description: exception.description,
+        actionText: 'OK',
+      );
     }
   }
 
   Future<void> startRecording() async {
     recordingResult.value = null;
-    await recordingController.startRecording();
+    await recordingController.startRecording(
+      onError: (error) {
+        AppSnackBar.showError(
+          context,
+          message: 'Recording error',
+          description: error.message,
+        );
+      },
+    );
   }
 
   Future<RecordingResult?> stopRecording() async {
@@ -124,21 +158,24 @@ class NewNotesController extends GetxController {
     await recordingController.resumeRecording();
   }
 
-  void openDatePicker(BuildContext context) {
-    showDatePicker(
+  Future<void> openDatePicker(BuildContext context) async {
+    await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
-    ).then((value) {
-      if (value != null) {
-        final day = value.day.toString().padLeft(2, '0');
-        final month = value.month.toString().padLeft(2, '0');
-        final year = value.year.toString();
-        patientDobEC.text = '$day-$month-$year';
-        patientDob = value;
-      }
-    });
+      barrierColor: context.theme.colors.dialogBarrier,
+    ).then(
+      (value) {
+        if (value != null) {
+          final day = value.day.toString().padLeft(2, '0');
+          final month = value.month.toString().padLeft(2, '0');
+          final year = value.year.toString();
+          patientDobEC.text = '$day-$month-$year';
+          patientDob = value;
+        }
+      },
+    );
   }
 
   void showFilePicker(BuildContext context) async {
@@ -167,8 +204,46 @@ class NewNotesController extends GetxController {
     selectedLAttachment.value = null;
   }
 
-  void restartRecording() {
+  Future<void> restartRecording(BuildContext context) async {
+    bool? confirmed = await ConfirmDialog.show(
+      context: context,
+      title: 'Restart Recording',
+      message: 'Are you sure you want to restart the recording?',
+      confirmButtonColor: context.theme.colors.error,
+      confirmTextColor: context.theme.colors.onError,
+      confirmText: 'Yes, Restart',
+    );
+
+    if (confirmed == null || confirmed == false) return;
+
+    recordingController.stopRecording();
+    recordingResult.value = null;
     startRecording();
   }
 
+  cancelRecording(BuildContext context) {
+    recordingController.stopRecording();
+    recordingResult.value = null;
+    context.goNamed(AppRoutes.nameNotesHome);
+  }
+
+  previewAttachment(BuildContext context) {
+    if (selectedLAttachment.value == null) return;
+    if (selectedLAttachment.value!.type.inAppPreview != true) {
+      AppSnackBar.showError(
+        context,
+        message: 'Preview not available',
+        description: 'This file type does not support in-app preview',
+      );
+      return;
+    }
+    AttachmentPreviewDialogView.showAttachmentPreviewDialog(
+      context: context,
+      file: AttachmentFileRequest(
+        name: selectedLAttachment.value!.fileName,
+        type: selectedLAttachment.value!.type,
+        bytes: selectedLAttachment.value!.bytes,
+      ),
+    );
+  }
 }

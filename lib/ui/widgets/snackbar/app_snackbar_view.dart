@@ -147,9 +147,20 @@ class AppSnackbarView extends SnackBar {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(contentText, style: context.theme.textTheme.bodyMedium?.copyWith(fontWeight: context.theme.typo.fw.bold)),
+          Text(
+            contentText,
+            style: context.theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: context.theme.typo.fw.bold,
+              color: context.theme.colors.onPrimary,
+            ),
+          ),
           const SizedBox(height: 2),
-          Text(description, style: context.theme.textTheme.bodyMedium),
+          Text(
+            description,
+            style: context.theme.textTheme.bodyMedium?.copyWith(
+              color: context.theme.colors.primaryTint90,
+            ),
+          ),
         ],
       );
     } else {

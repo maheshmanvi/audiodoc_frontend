@@ -1,9 +1,13 @@
+import 'package:audiodoc/domain/entity/login_response.dart';
+import 'package:audiodoc/domain/repo/auth_repo.dart';
+import 'package:audiodoc/domain/usecases/auth_usecases.dart';
 import 'package:audiodoc/infrastructure/di.dart';
 import 'package:audiodoc/infrastructure/env.dart';
 import 'package:audiodoc/ui/app_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'infrastructure/sl.dart';
 import 'pages/home_page.dart';
 
 Future<void> main() async {
@@ -12,6 +16,11 @@ Future<void> main() async {
   await Env.hardcoded();
 
   inject();
+
+  final AuthUseCases authUseCases = sl();
+
+  final authResult = await authUseCases.softLogin();
+  if(authResult.isRight) await authUseCases.onAuthSuccess(authResult.right);
 
   runApp(AppView());
 

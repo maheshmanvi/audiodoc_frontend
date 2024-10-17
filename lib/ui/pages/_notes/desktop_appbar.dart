@@ -1,3 +1,4 @@
+import 'package:audiodoc/ui/widgets/current_user_view.dart';
 import 'package:flutter/material.dart';
 
 import 'package:audiodoc/resources/app_strings.dart';
@@ -37,16 +38,7 @@ class DesktopAppBarView extends GetView<HomePageController> implements Preferred
           ),
           const Spacer(),
           const SizedBox(width: 16),
-          CircleAvatar(
-            backgroundColor: context.theme.colors.accent,
-            child: Text(
-              "A",
-              style: context.theme.textTheme.bodyMedium?.copyWith(
-                color: context.theme.colors.onAccent,
-                fontWeight: context.theme.typo.fw.bold,
-              ),
-            ),
-          ),
+          CurrentUserView(),
         ],
       ),
     );

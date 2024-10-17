@@ -1,12 +1,17 @@
+import 'dart:html' as html;
+
 import 'package:audiodoc/commons/exception/app_exception.dart';
 import 'package:audiodoc/commons/utils/data_state.dart';
 import 'package:audiodoc/commons/utils/post_frame_callback.dart';
 import 'package:audiodoc/domain/entity/attachment.dart';
 import 'package:audiodoc/domain/usecases/note_usecases.dart';
 import 'package:audiodoc/infrastructure/sl.dart';
+import 'package:audiodoc/theme/theme_extension.dart';
 import 'package:audiodoc/ui/pages/_notes/notes_list_vm.dart';
+import 'package:audiodoc/ui/pages/view_note/view_note_controller.dart';
 import 'package:audiodoc/ui/router/app_router.dart';
 import 'package:audiodoc/ui/widgets/attachment/attachment_preview_dialog_view.dart';
+import 'package:audiodoc/ui/widgets/confirm_dialog.dart';
 import 'package:audiodoc/ui/widgets/snackbar/app_snackbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -97,5 +102,46 @@ class NotesController extends GetxController {
 
   void openNewNote(BuildContext context) {
     context.goNamed(AppRoutes.nameNewNote);
+  }
+
+  void refreshNotes() async {
+    await fetchNotes();
+  }
+
+  void deleteNoteById(BuildContext context, {required String id}) async {
+    final bool? confirmed = await ConfirmDialog.show(
+      context: context,
+      title: 'Delete Note',
+      message: 'Are you sure you want to delete this note?',
+      confirmButtonColor: context.theme.colors.error,
+      confirmTextColor: context.theme.colors.onError,
+      confirmText: "Yes, Delete",
+    );
+
+    if (confirmed == null || confirmed == false) return;
+
+    final deleteResponse = await _noteUseCases.deleteById(id);
+    if (deleteResponse.isLeft) {
+      AppException appException = AppException.fromAnyException(deleteResponse.left);
+      AppSnackBar.showErrorToast(context, message: appException.message);
+      return;
+    }
+
+    if (confirmed == true) {
+      AppSnackBar.showSuccessToast(context, message: 'Note deleted successfully');
+      fetchNotes();
+    }
+
+    // if it is currently opened, the refresh the notes
+    ViewNoteController? viewNoteController = (Get.isRegistered<ViewNoteController>()) ? Get.find<ViewNoteController>() : null;
+    if ((viewNoteController?.initLoadState.value.isSuccess == true) && (viewNoteController?.id == id) == true) {
+      viewNoteController?.fetchNote();
+    }
+  }
+
+  void downloadRecording(String url, String name) {
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute('download', name)
+      ..click();
   }
 }

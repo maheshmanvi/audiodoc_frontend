@@ -20,7 +20,7 @@ class _ViewNoteViewState extends State<ViewNoteView> {
   @override
   void initState() {
     Get.delete<ViewNoteController>();
-    controller = ViewNoteController(id: widget.id);
+    controller = ViewNoteController(context, id: widget.id);
     Get.put(controller);
     super.initState();
   }
@@ -30,7 +30,7 @@ class _ViewNoteViewState extends State<ViewNoteView> {
     if (oldWidget.id != widget.id) {
       // recreate the ui
       Get.delete<ViewNoteController>();
-      controller = ViewNoteController(id: widget.id);
+      controller = ViewNoteController(context, id: widget.id);
       Get.put(controller);
     }
     super.didUpdateWidget(oldWidget);
@@ -38,9 +38,22 @@ class _ViewNoteViewState extends State<ViewNoteView> {
 
   @override
   Widget build(BuildContext context) {
-    return ResponsiveView(
-      mobile: (ctx) => MobileViewNoteView(),
-      desktop: (ctx) => DesktopViewNoteView(),
+    return OverlayPortal.targetsRootOverlay(
+      controller: controller.overlayController,
+      overlayChildBuilder: (ctx) {
+        return AbsorbPointer(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              LinearProgressIndicator(),
+            ],
+          ),
+        );
+      },
+      child: ResponsiveView(
+        mobile: (ctx) => MobileViewNoteView(),
+        desktop: (ctx) => DesktopViewNoteView(),
+      ),
     );
   }
 }

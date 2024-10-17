@@ -62,7 +62,6 @@ class AttachFilesView extends GetView<NewNotesController> {
 }
 
 
-
 class AttachPreviewView extends StatelessWidget {
   final AttachmentType type;
   final String name;
@@ -85,6 +84,9 @@ class AttachPreviewView extends StatelessWidget {
     double maxWidth = min(mediaQuerySize.width, 500);
     logger.d('mediaQuerySize: $mediaQuerySize, maxWidth: $maxWidth');
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
       margin: EdgeInsets.zero,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
@@ -108,7 +110,7 @@ class AttachPreviewView extends StatelessWidget {
                     name,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis, // Add ellipsis to avoid overflow
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4.0),
                   Text(

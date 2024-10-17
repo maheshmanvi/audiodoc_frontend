@@ -78,26 +78,21 @@ class _Body extends GetView<LoginController> {
                         const SizedBox(height: 48),
                         _PasswordField(controller: controller),
                         SizedBox(height: 48),
-                        ElevatedButton(
-                          onPressed: () {
-                            controller.login();
+                        Obx(
+                          () {
+                            return ElevatedButton(
+                              onPressed: (controller.state.value.isLoading) ? null : () => controller.login(context),
+                              child: _buildButtonContent(context),
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: Size(double.infinity, 50),
+                                backgroundColor: context.theme.colors.primary,
+                                foregroundColor: context.theme.colors.onPrimary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            );
                           },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text('Login'),
-                              const SizedBox(width: 12),
-                              Icon(Icons.login),
-                            ],
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: Size(double.infinity, 50),
-                            backgroundColor: context.theme.colors.primary,
-                            foregroundColor: context.theme.colors.onPrimary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
                         ),
                       ],
                     ),
@@ -108,6 +103,31 @@ class _Body extends GetView<LoginController> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildButtonContent(BuildContext context) {
+    return Obx(
+      () {
+        if (controller.state.value.isLoading) {
+          return SizedBox(
+            height: 24,
+            width: 24,
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(context.theme.colors.onPrimary),
+            ),
+          );
+        } else {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Login'),
+              const SizedBox(width: 12),
+              Icon(Icons.login),
+            ],
+          );
+        }
+      },
     );
   }
 }

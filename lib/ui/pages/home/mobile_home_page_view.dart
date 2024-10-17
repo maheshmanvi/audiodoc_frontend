@@ -3,6 +3,7 @@ import 'package:audiodoc/theme/theme_extension.dart';
 import 'package:audiodoc/ui/pages/_notes/notes_list_view.dart';
 import 'package:audiodoc/ui/pages/home/home_page_controller.dart';
 import 'package:audiodoc/ui/widgets/branding/brand_logo.dart';
+import 'package:audiodoc/ui/widgets/current_user_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -13,16 +14,42 @@ class MobileHomePageView extends GetView<HomePageController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MobileHomeAppBar(),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: context.theme.colors.primary,
-        tooltip: 'New Note',
-        onPressed: () => controller.goToNewNoteView(context),
-        child: Icon(
-          Icons.add,
-          color: context.theme.colors.onPrimary,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(100),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Container(
+        child: Row(
+          children: [
+            const SizedBox(width: 16),
+            FloatingActionButton(
+              backgroundColor: context.theme.colors.primaryTint90,
+              tooltip: 'Refresh',
+              onPressed: () => controller.refreshNotes(),
+              child: Icon(
+                Icons.refresh,
+                color: context.theme.colors.primary,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(100),
+              ),
+            ),
+            Spacer(flex: 1),
+            FloatingActionButton.extended(
+              icon: Icon(Icons.add, color: context.theme.colors.onPrimary),
+              label: Text(
+                AppStrings.newNote,
+                style: context.theme.textTheme.bodyMedium?.copyWith(
+                  color: context.theme.colors.onPrimary,
+                  fontWeight: context.theme.typo.fw.semibold,
+                ),
+              ),
+              backgroundColor: context.theme.colors.primary,
+              tooltip: 'New Note',
+              onPressed: () => controller.goToNewNoteView(context),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(100),
+              ),
+            ),
+            const SizedBox(width: 16),
+          ],
         ),
       ),
       body: NotesListView(),
@@ -59,16 +86,7 @@ class MobileHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           const Spacer(),
           const SizedBox(width: 16),
-          CircleAvatar(
-            backgroundColor: context.theme.colors.accent,
-            child: Text(
-              "A",
-              style: context.theme.textTheme.bodyMedium?.copyWith(
-                color: context.theme.colors.onAccent,
-                fontWeight: context.theme.typo.fw.bold,
-              ),
-            ),
-          ),
+          CurrentUserView(),
         ],
       ),
     );

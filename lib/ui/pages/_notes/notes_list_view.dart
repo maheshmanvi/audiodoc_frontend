@@ -29,14 +29,35 @@ class NotesListItems extends GetView<NotesController> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      separatorBuilder: (context, index) => Divider(height: 1, color: context.theme.colors.divider),
-      itemCount: controller.noteListItems.length,
-      itemBuilder: (context, index) {
-        final note = controller.noteListItems[index];
-        return _ListItem(note: note);
-      },
-    );
+    return Obx(() {
+      if (controller.noteListItems.isEmpty) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text('No notes found', style: context.theme.textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Text('Click on the + button to create a new note', style: context.theme.textTheme.bodySmall),
+              ],
+            ),
+          ),
+        );
+      }
+      return ListView.separated(
+        separatorBuilder: (context, index) => Divider(height: 1, color: context.theme.colors.divider),
+        itemCount: (controller.noteListItems.length) + 1,
+        itemBuilder: (context, index) {
+          if (index == controller.noteListItems.length) {
+            return const SizedBox(height: 80);
+          }
+          final note = controller.noteListItems[index];
+          return _ListItem(note: note);
+        },
+      );
+    });
   }
 }
 
@@ -83,13 +104,34 @@ class _ListItem extends GetView<NotesController> {
                 ],
               ),
             ),
+            PopupMenuButton(
+              icon: Icon(Icons.more_vert),
+              itemBuilder: (context) {
+                return [
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete),
+                        const SizedBox(width: 8),
+                        Text('Delete'),
+                      ],
+                    ),
+                  ),
+                ];
+              },
+              onSelected: (value) {
+                if (value == 'delete') {
+                  controller.deleteNoteById(context, id: note.id);
+                }
+              },
+            ),
           ],
         ),
       ),
     );
   }
 }
-
 
 class _AttachFileView extends GetView<NotesController> {
   final Attachment attachment;

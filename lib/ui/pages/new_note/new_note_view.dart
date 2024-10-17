@@ -31,7 +31,7 @@ class _NewNoteViewState extends State<NewNoteView> {
     bool start = startString == 'true';
 
 
-    Get.put(NewNotesController(start: start));
+    Get.put(NewNotesController(start: start, context: context));
     super.initState();
   }
 

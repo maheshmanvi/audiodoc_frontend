@@ -8,13 +8,18 @@ class DesktopHomePageView extends GetView<HomePageController> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: ElevatedButton(
-        onPressed: () => controller.startRecording(context),
-        child: Text('Start Recording'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: context.theme.colors.primary,
-          foregroundColor: context.theme.colors.onPrimary,
+    return Container(
+      decoration: BoxDecoration(
+        color: context.theme.colors.background
+      ),
+      child: Center(
+        child: ElevatedButton(
+          onPressed: () => controller.startRecording(context),
+          child: Text('Start Recording'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: context.theme.colors.primary,
+            foregroundColor: context.theme.colors.onPrimary,
+          ),
         ),
       ),
     );

@@ -39,21 +39,47 @@ class DesktopNotesView extends GetView<NotesController> {
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: ElevatedButton(
-                            onPressed: () => controller.openNewNote(context),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add),
-                                const SizedBox(width: 8),
-                                Text("New Note"),
-                              ],
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: context.theme.colors.primary,
-                              foregroundColor: context.theme.colors.onPrimary,
-                              minimumSize: const Size(120, 48),
-                            ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () => controller.openNewNote(context),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.add),
+                                      const SizedBox(width: 8),
+                                      Text("New Note"),
+                                    ],
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: context.theme.colors.primary,
+                                    foregroundColor: context.theme.colors.onPrimary,
+                                    minimumSize: const Size(120, 48),
+                                  ),
+                                ),
+                              ),
+                              // Refresh Button
+                              const SizedBox(width: 12),
+                              Tooltip(
+                                waitDuration: const Duration(milliseconds: 500),
+                                message: 'Refresh',
+                                child: ElevatedButton(
+                                  onPressed: () => controller.refreshNotes(),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.refresh),
+                                    ],
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: context.theme.colors.primaryTint90,
+                                    foregroundColor: context.theme.colors.primary,
+                                    minimumSize: const Size(48, 48),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),

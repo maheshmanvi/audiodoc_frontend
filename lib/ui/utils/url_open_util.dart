@@ -15,4 +15,9 @@ class UrlOpenUtil {
       AppSnackBar.showErrorToast(context, message: 'Failed to Open URL');
     }
   }
+
+  static void downloadFile(BuildContext context, String baseUrl) {
+    Uri uri = Uri.parse(baseUrl);
+    OpenURI(context, uri);
+  }
 }
