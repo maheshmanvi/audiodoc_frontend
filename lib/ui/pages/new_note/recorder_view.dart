@@ -1,23 +1,39 @@
 import 'package:audiodoc/commons/utils/duration2human.dart';
+import 'package:audiodoc/theme/theme_extension.dart';
 import 'package:audiodoc/ui/pages/new_note/new_note_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+double _bigIconSize = 32;
+double _bigIconRadius = 16;
+double _bigIconPadding = 16;
 
 class RecorderView extends GetView<NewNotesController> {
   const RecorderView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      if (controller.recordingController.isRecording()) {
-        return RecordingView();
-      } else if (controller.recordingController.isPaused()) {
-        return PausedView();
-      }
-      else {
-        return StoppedView();
-      }
-    });
+    return Card(
+      margin: const EdgeInsets.all(0),
+      elevation: 2,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: context.theme.colors.surface,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Obx(() {
+          if (controller.recordingController.isRecording()) {
+            return RecordingView();
+          } else if (controller.recordingController.isPaused()) {
+            return PausedView();
+          } else {
+            return StoppedView();
+          }
+        }),
+      ),
+    );
   }
 }
 
@@ -27,34 +43,44 @@ class RecordingView extends GetView<NewNotesController> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          IconButtonWithTooltip(
-            icon: Icons.stop,
-            tooltip: 'Stop Recording',
-            onPressed: () async {
-              await controller.stopRecording();
-            },
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              RecorderButton(
+                icon: Icons.stop,
+                iconColor: Colors.white,
+                bgColor: Colors.red,
+                tooltip: 'Stop Recording',
+                onPressed: () async => await controller.stopRecording(),
+              ),
+              const SizedBox(width: 16),
+              RecorderButton(
+                icon: Icons.pause,
+                tooltip: 'Pause Recording',
+                iconColor: Colors.white,
+                bgColor: Colors.green,
+                iconSize: _bigIconSize,
+                borderRadius: _bigIconRadius,
+                iconPadding: EdgeInsets.all(_bigIconPadding),
+                onPressed: () async => await controller.pauseRecording(),
+              ),
+              const SizedBox(width: 16),
+              RecorderButton(
+                icon: Icons.refresh,
+                iconColor: Colors.white,
+                bgColor: Colors.blue,
+                tooltip: 'Restart Recording',
+                onPressed: () async {
+                  controller.restartRecording();
+                },
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          IconButtonWithTooltip(
-            icon: Icons.pause,
-            tooltip: 'Pause Recording',
-            onPressed: () async {
-              await controller.pauseRecording();
-            },
-          ),
-          const SizedBox(width: 16),
-          IconButtonWithTooltip(
-            icon: Icons.refresh,
-            tooltip: 'Restart Recording',
-            onPressed: () async {
-              await controller.stopRecording();
-              await controller.startRecording();
-            },
-          ),
-          const SizedBox(width: 16),
+          const SizedBox(height: 16),
           RecordingTimer(),
         ],
       ),
@@ -67,38 +93,47 @@ class PausedView extends GetView<NewNotesController> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          IconButtonWithTooltip(
-            icon: Icons.stop,
-            tooltip: 'Stop Recording',
-            onPressed: () async {
-              await controller.stopRecording();
-            },
-          ),
-          const SizedBox(width: 16),
-          IconButtonWithTooltip(
-            icon: Icons.play_arrow,
-            tooltip: 'Resume Recording',
-            onPressed: () async {
-              await controller.resumeRecording();
-            },
-          ),
-          const SizedBox(width: 16),
-          IconButtonWithTooltip(
-            icon: Icons.refresh,
-            tooltip: 'Restart Recording',
-            onPressed: () async {
-              await controller.stopRecording();
-              await controller.startRecording();
-            },
-          ),
-          const SizedBox(width: 16),
-          RecordingTimer(),
-        ],
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            RecorderButton(
+              icon: Icons.stop,
+              tooltip: 'Stop Recording',
+              iconColor: Colors.white,
+              onPressed: () async => await controller.stopRecording(),
+              bgColor: Colors.red,
+            ),
+            const SizedBox(width: 16),
+            RecorderButton(
+              icon: Icons.play_arrow,
+              tooltip: 'Resume Recording',
+              iconColor: Colors.white,
+              onPressed: () async => await controller.resumeRecording(),
+              bgColor: Colors.green,
+              iconSize: _bigIconSize,
+              iconPadding: EdgeInsets.all(_bigIconPadding),
+              borderRadius: _bigIconRadius,
+            ),
+            const SizedBox(width: 16),
+            RecorderButton(
+              icon: Icons.refresh,
+              tooltip: 'Restart Recording',
+              iconColor: Colors.white,
+              onPressed: () async {
+                await controller.stopRecording();
+                await controller.startRecording();
+              },
+              bgColor: Colors.blue,
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        RecordingTimer(),
+      ],
     );
   }
 }
@@ -108,44 +143,74 @@ class StoppedView extends GetView<NewNotesController> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          IconButtonWithTooltip(
-            icon: Icons.mic,
-            tooltip: 'Start Recording',
-            onPressed: () async {
-              await controller.startRecording();
-            },
-          ),
-          const SizedBox(width: 16),
-          RecordingTimer(),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        RecorderButton(
+          icon: Icons.mic,
+          tooltip: 'Start Recording',
+          iconColor: Colors.white,
+          onPressed: () async => await controller.startRecording(),
+          bgColor: Colors.red,
+          iconSize: _bigIconSize,
+          iconPadding: EdgeInsets.all(_bigIconPadding),
+          borderRadius: _bigIconRadius,
+        ),
+        const SizedBox(height: 16),
+        RecordingTimer(),
+      ],
     );
   }
 }
 
-class IconButtonWithTooltip extends StatelessWidget {
+class RecorderButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
   final VoidCallback onPressed;
+  final Color bgColor;
+  final Color iconColor;
+  final double iconSize;
+  final EdgeInsets iconPadding;
+  final double borderRadius;
 
-  const IconButtonWithTooltip({
-    Key? key,
+  const RecorderButton({
+    super.key,
     required this.icon,
     required this.tooltip,
     required this.onPressed,
-  }) : super(key: key);
+    this.bgColor = Colors.transparent,
+    this.iconColor = Colors.black,
+    this.iconSize = 24,
+    this.iconPadding = const EdgeInsets.all(8),
+    this.borderRadius = 12,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
       message: tooltip,
-      child: IconButton(
-        icon: Icon(icon),
-        onPressed: onPressed,
+      waitDuration: const Duration(milliseconds: 500),
+      child: Material(
+        elevation: 2,
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(borderRadius),
+          onTap: onPressed,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+            child: Padding(
+              padding: iconPadding,
+              child: Icon(
+                icon,
+                size: iconSize,
+                color: iconColor,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

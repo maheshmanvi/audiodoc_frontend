@@ -127,6 +127,15 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color onSuccess;
 
   final Color surface;
+  final Color background;
+
+  final Color divider;
+
+  final Color loginFormFieldBorder;
+
+  final Color contentPrimary;
+  final Color contentSecondary;
+  final Color contentTertiary;
 
   AppColors({
     this.primary = BaseColors.primary,
@@ -242,9 +251,13 @@ class AppColors extends ThemeExtension<AppColors> {
     this.successTint95 = BaseColors.successTint95,
     this.successTint100 = BaseColors.successTint100,
     this.onSuccess = BaseColors.successTint100,
-
     this.surface = BaseColors.white,
-
+    this.background = BaseColors.gray100,
+    this.divider = BaseColors.gray200,
+    this.loginFormFieldBorder = BaseColors.gray300,
+    this.contentPrimary = BaseColors.gray900,
+    this.contentSecondary = BaseColors.gray700,
+    this.contentTertiary = BaseColors.gray500,
   });
 
   @override

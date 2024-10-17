@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:audiodoc/ui/widgets/recording_player/player_speed.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
+
+import 'player_speed.dart';
 
 class AudioPlayerViewController extends GetxController {
   final AudioPlayer player = AudioPlayer();
@@ -21,7 +22,7 @@ class AudioPlayerViewController extends GetxController {
   AudioPlayerViewController({
     required this.url,
   }) {
-    audioSource = AudioSource.uri(Uri.parse("https://file-examples.com/storage/feb05093336710053a32bc1/2017/11/file_example_WAV_2MG.wav"));
+    audioSource = AudioSource.uri(Uri.parse(url));
   }
 
   @override

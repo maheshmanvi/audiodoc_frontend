@@ -11,4 +11,6 @@ abstract class NoteRepo {
 
   Future<NoteListResponse> findAll();
 
+  String getBaseUrl(String? relativeUR);
+
 }

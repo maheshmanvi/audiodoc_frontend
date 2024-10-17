@@ -7,80 +7,72 @@ class AttachmentType {
   final String extension;
   final bool inAppPreview;
 
-  AttachmentType({
+  const AttachmentType({
     required this.type,
     required this.name,
     required this.extension,
     this.inAppPreview = false,
   });
 
-  static AttachmentType image = AttachmentType(
+  // Direct initialization of static final properties with the const constructor
+  static const AttachmentType image = AttachmentType(
     type: typeImage,
     name: 'Image',
     extension: 'jpg',
     inAppPreview: true,
   );
 
-  static AttachmentType png = AttachmentType(
+  static const AttachmentType png = AttachmentType(
     type: typeImage,
     name: 'Image',
     extension: 'png',
     inAppPreview: true,
   );
 
-  static AttachmentType jpeg = AttachmentType(
+  static const AttachmentType jpeg = AttachmentType(
     type: typeImage,
     name: 'Image',
     extension: 'jpeg',
     inAppPreview: true,
   );
 
-  static AttachmentType pdf = AttachmentType(
+  static const AttachmentType pdf = AttachmentType(
     type: typeDocument,
     name: 'PDF',
     extension: 'pdf',
     inAppPreview: true,
   );
 
-  static AttachmentType doc = AttachmentType(
+  static const AttachmentType doc = AttachmentType(
     type: typeDocument,
     name: 'Document',
     extension: 'doc',
   );
 
-  static AttachmentType docx = AttachmentType(
+  static const AttachmentType docx = AttachmentType(
     type: typeDocument,
     name: 'Document',
     extension: 'docx',
   );
 
-  List<AttachmentType> images = [
-    AttachmentType.image,
-    AttachmentType.png,
-    AttachmentType.jpeg,
-  ];
+  bool get isDocx => this == docx;
+  bool get isDoc => this == doc;
 
-  List<AttachmentType> documents = [
-    AttachmentType.pdf,
-    AttachmentType.doc,
-    AttachmentType.docx,
-  ];
-
-  static List<AttachmentType> values = [
-    AttachmentType.image,
-    AttachmentType.png,
-    AttachmentType.jpeg,
-    AttachmentType.pdf,
-    AttachmentType.doc,
-    AttachmentType.docx,
-  ];
+  static List<AttachmentType> get values => [
+        image,
+        png,
+        jpeg,
+        pdf,
+        doc,
+        docx,
+      ];
 
   bool get isImage => type == typeImage;
 
   bool get isDocument => type == typeDocument;
 
   static Map<String, AttachmentType> get map => {
-        'image': image,
+        'jpg': image,
         'png': png,
         'jpeg': jpeg,
         'pdf': pdf,
@@ -88,11 +80,18 @@ class AttachmentType {
         'docx': docx,
       };
 
-  static AttachmentType fromFileExtension(String string) {
-    AttachmentType? type = map[string];
+  bool get isPDF => this == pdf;
+
+  static AttachmentType fromFileExtension(String extension) {
+    final type = map[extension];
     if (type == null) {
-      throw Exception("AttachmentType: Unsupported file extension: $string");
+      throw Exception("AttachmentType: Unsupported file extension: $extension");
     }
     return type;
+  }
+
+  static AttachmentType fromFileName(String name) {
+    final extension = name.split('.').last;
+    return fromFileExtension(extension);
   }
 }

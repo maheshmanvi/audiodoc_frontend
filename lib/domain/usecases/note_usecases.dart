@@ -30,7 +30,7 @@ class NoteUseCases {
     }
   }
 
-  Future<Either<AppException, NoteListResponse>> findAll() async {
+  Future<Either<AppException, NoteListResponse>> findAll({String? search}) async {
     try {
       final response = await _noteRepo.findAll();
       return Right(response);
@@ -38,6 +38,15 @@ class NoteUseCases {
       return Left(NetworkException.fromDioError(e));
     }
   }
+
+  String getBaseUrl(String? relativeUR) {
+    return _noteRepo.getBaseUrl(relativeUR);
+  }
+
+  String getWordDocViewerURL(String relativeURL) {
+    return "https://docs.google.com/viewer?url=" + (relativeURL);
+  }
+
 
 
 }

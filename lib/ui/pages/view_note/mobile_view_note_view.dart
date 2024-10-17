@@ -1,3 +1,5 @@
+import 'package:audiodoc/ui/pages/view_note/view_note_main_view.dart';
+import 'package:audiodoc/ui/widgets/mobile_nav_back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -9,14 +11,11 @@ class MobileViewNoteView extends GetView<ViewNoteController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => controller.goBack(context),
-        ),
-        title: Text("View Note"),
+      appBar: MobileNavBackAppBar(
+        title: "View Note",
+        onBack: () => controller.goBack(context),
       ),
-      body: Text("Mobile: View Note View: ${controller.id}"),
+      body: ViewNoteMainView(),
     );
   }
 }

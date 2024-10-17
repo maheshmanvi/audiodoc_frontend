@@ -12,9 +12,9 @@ class INoteRepo implements NoteRepo {
   INoteRepo({required ApiClient apiClient}) : _apiClient = apiClient;
 
   @override
-  Future<NoteListResponse> findAll() async {
+  Future<NoteListResponse> findAll({String? search}) async {
     try {
-      final response = await _apiClient.dio.get('/notes');
+      final response = await _apiClient.dio.get('/notes', queryParameters: {'search': search});
       return NoteListResponse.fromMap(response.data);
     } catch (e) {
       throw Exception('Failed to load notes');
@@ -39,6 +39,11 @@ class INoteRepo implements NoteRepo {
     } catch (e) {
       throw Exception('Failed to save note');
     }
+  }
+
+  @override
+  String getBaseUrl(String? relativeUR) {
+    return _apiClient.getBaseUrl(relativeUR);
   }
 
 

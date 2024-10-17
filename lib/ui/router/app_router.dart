@@ -1,11 +1,17 @@
+import 'package:audiodoc/infrastructure/app_state.dart';
+import 'package:audiodoc/infrastructure/sl.dart';
 import 'package:audiodoc/ui/pages/_notes/notes_view.dart';
 import 'package:audiodoc/ui/pages/home/home_page_view.dart';
+import 'package:audiodoc/ui/pages/login/login_view.dart';
 import 'package:audiodoc/ui/pages/new_note/new_note_view.dart';
 import 'package:audiodoc/ui/pages/view_note/view_note_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRoutes {
+  static const String login = "/login";
+  static const String nameLogin = "login";
+
   static const String notesHome = "/notes/home";
   static const String nameNotesHome = "notesHome";
 
@@ -37,7 +43,7 @@ final goRouter = GoRouter(
         GoRoute(
           path: AppRoutes.newNote,
           name: AppRoutes.nameNewNote,
-          pageBuilder: (context, state) => NoTransitionPage(child: NewNoteView()),
+          pageBuilder: (context, state) => NoTransitionPage(child: NewNoteView(routerState: state)),
         ),
         GoRoute(
           path: AppRoutes.viewNoteById,
@@ -49,5 +55,17 @@ final goRouter = GoRouter(
         ),
       ],
     ),
+    GoRoute(
+      name: AppRoutes.nameLogin,
+      path: AppRoutes.login,
+      pageBuilder: (context, state) => NoTransitionPage(child: LoginView()),
+    ),
   ],
+  redirect: (ctx, state) async {
+    AppState appState = sl();
+    if (appState.isLoggedIn) {
+      return null;
+    }
+    return AppRoutes.login;
+  },
 );

@@ -1,15 +1,18 @@
-import 'package:audiodoc/ui/widgets/recording_player/audio_player_controller.dart';
+import 'package:audiodoc/theme/theme_extension.dart';
+import 'package:audiodoc/ui/widgets/audio_avatar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 
+import 'audio_player_controller.dart';
+
 class AudioPlayerView extends StatefulWidget {
-  final String fileName;
+  final TextEditingController liveFileName;
   final String url;
 
   const AudioPlayerView({
     super.key,
-    required this.fileName,
+    required this.liveFileName,
     required this.url,
   });
 
@@ -37,15 +40,16 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
+      elevation: 2,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
           _AudioThumbnailView(
             audioSource: controller.audioSource,
-            fileName: widget.fileName,
+            liveFileName: widget.liveFileName,
           ),
-          _AudioSeekBar(),
+          Divider(height: 1, color: context.theme.colors.divider),
           _AudioControls(),
         ],
       ),
@@ -55,12 +59,12 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
 
 class _AudioThumbnailView extends GetView<AudioPlayerViewController> {
   final AudioSource audioSource;
-  final String fileName;
+  final TextEditingController liveFileName;
 
   const _AudioThumbnailView({
     super.key,
     required this.audioSource,
-    required this.fileName,
+    required this.liveFileName,
   });
 
   @override
@@ -71,13 +75,33 @@ class _AudioThumbnailView extends GetView<AudioPlayerViewController> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.audiotrack),
+              AudioAvatarView(),
               const SizedBox(width: 16),
-              Text(fileName),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ValueListenableBuilder(
+                      valueListenable: liveFileName,
+                      builder: (context, value, child) {
+                        return Text(
+                          value.text,
+                          style: context.theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: context.theme.typo.fw.medium,
+                          ),
+                          textAlign: TextAlign.start,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 4),
+                    _PlayerDurationView(),
+                  ],
+                ),
+              ),
             ],
           ),
-          _PlayerDurationView(),
         ],
       ),
     );
@@ -104,15 +128,18 @@ class _AudioSeekBar extends GetView<AudioPlayerViewController> {
 class _AudioControls extends GetView<AudioPlayerViewController> {
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _RewindButton(),
-        const SizedBox(width: 16),
-        _PlayPauseButton(),
-        const SizedBox(width: 16),
-        _FastForwardButton(),
-        Spacer(),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _RewindButton(),
+          const SizedBox(width: 16),
+          _PlayPauseButton(),
+          const SizedBox(width: 16),
+          _FastForwardButton(),
+        ],
+      ),
     );
   }
 }
@@ -121,7 +148,7 @@ class _RewindButton extends GetView<AudioPlayerViewController> {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.replay_10),
+      icon: Icon(Icons.replay_5),
       onPressed: controller.rewind,
     );
   }
@@ -151,28 +178,28 @@ class _FastForwardButton extends GetView<AudioPlayerViewController> {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.forward_10),
+      icon: Icon(Icons.forward_5),
       onPressed: controller.fastForward,
     );
   }
 }
 
 class _PlayerDurationView extends GetView<AudioPlayerViewController> {
+  String formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$minutes:$seconds';
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Obx(
-      () {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '${controller.currentPosition.value.inMinutes}:${controller.currentPosition.value.inSeconds.remainder(60)} / ${controller.totalDuration.value.inMinutes}:${controller.totalDuration.value.inSeconds.remainder(60)}',
-            ),
-            // state
-            Text(controller.processingState.value.toString()),
-          ],
-        );
-      },
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Obx(() => Text(formatDuration(controller.currentPosition.value))),
+        Obx(() => Text("/" + formatDuration(controller.totalDuration.value))),
+      ],
     );
   }
 }

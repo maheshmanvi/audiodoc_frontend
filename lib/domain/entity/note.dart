@@ -10,6 +10,11 @@ class Note {
   final DateTime updatedAt;
   final Attachment? attachment;
 
+  final String? patientName;
+  final DateTime? patientDob;
+  final String? patientMobile;
+
+
   Note({
     required this.id,
     required this.title,
@@ -17,6 +22,9 @@ class Note {
     required this.createdAt,
     required this.updatedAt,
     this.attachment,
+    this.patientName,
+    this.patientDob,
+    this.patientMobile,
   });
 
   factory Note.fromMap(Map<String, dynamic> map) {
@@ -25,7 +33,10 @@ class Note {
     Recording recording = Recording.fromMap(map.getMap("recording"));
     DateTime createdAt = map.getDateTime("createdAt");
     DateTime updatedAt = map.getDateTime("updatedAt");
-    Attachment? attachment = map.containsKey("attachment") ? Attachment.fromMap(map.getMap("attachment")) : null;
+    Attachment? attachment = map.hasValue("attachment") ? Attachment.fromMap(map.getMap("attachment")) : null;
+    String? patientName = map.getStringNullable("patientName");
+    DateTime? patientDob = map.getDateNullable("patientDob");
+    String? patientMobile = map.getStringNullable("patientMobile");
     return Note(
       id: id,
       title: title,
@@ -33,6 +44,9 @@ class Note {
       createdAt: createdAt,
       updatedAt: updatedAt,
       attachment: attachment,
+      patientName: patientName,
+      patientDob: patientDob,
+      patientMobile: patientMobile,
     );
   }
 }

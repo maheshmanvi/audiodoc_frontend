@@ -4,9 +4,15 @@ import 'package:audiodoc/ui/pages/new_note/new_note_controller.dart';
 import 'package:audiodoc/ui/widgets/responsive_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/src/state.dart';
 
 class NewNoteView extends StatefulWidget {
-  const NewNoteView({super.key});
+  final GoRouterState? routerState;
+
+  const NewNoteView({
+    super.key,
+    this.routerState,
+  });
 
   @override
   State<NewNoteView> createState() => _NewNoteViewState();
@@ -16,10 +22,16 @@ class _NewNoteViewState extends State<NewNoteView> {
 
 
 
+
   @override
   void initState() {
     Get.delete<NewNotesController>();
-    Get.put(NewNotesController());
+
+    final startString = widget.routerState?.uri.queryParameters['start'];
+    bool start = startString == 'true';
+
+
+    Get.put(NewNotesController(start: start));
     super.initState();
   }
 

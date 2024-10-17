@@ -15,4 +15,12 @@ class ApiClient {
     ));
     return ApiClient.internal(dio: dio);
   }
+
+  String getBaseUrl(String? relativeUR) {
+    Env env = Env.instance;
+    if (relativeUR != null) {
+      return "${env.apiScheme}://${env.apiHost}:${env.apiPort}/$relativeUR";
+    }
+    return "${env.apiScheme}://${env.apiHost}:${env.apiPort}";
+  }
 }

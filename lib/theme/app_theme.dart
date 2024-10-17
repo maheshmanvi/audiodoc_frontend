@@ -10,6 +10,8 @@ class AppTheme {
       fontFamily: 'Poppins',
       primaryColor: BaseColors.primary,
       scaffoldBackgroundColor: BaseColors.white,
+      cardColor: BaseColors.white,
+      canvasColor: BaseColors.white,
       textTheme: AppTypo.defaultTextTheme(),
       extensions: [
         AppShadows.defaultShadows(),

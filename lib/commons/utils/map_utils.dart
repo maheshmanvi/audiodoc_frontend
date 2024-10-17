@@ -38,7 +38,7 @@ extension MapUtils on Map<String, dynamic> {
 
   String getString(String key) => _getValue<String>(key)!;
 
-  DateTime? getDateTimeOrNull(String key) {
+  DateTime? getDateTimeNullable(String key) {
     final dateString = _getValue<String>(key, allowNull: true);
     if (dateString != null) {
       try {
@@ -97,6 +97,32 @@ extension MapUtils on Map<String, dynamic> {
 
   // getMapNullable
   Map<String, dynamic>? getMapNullable(String key) => _getValue<Map<String, dynamic>>(key, allowNull: true);
+
+
+  DateTime? getDateNullable(String key) {
+    final dateString = _getValue<String>(key, allowNull: true);
+    if (dateString != null) {
+      try {
+        return DateTime.parse(dateString);
+      } catch (e) {
+        logger.e("MapUtils-getDateOrNull: Failed to parse DateTime from $key, error: $e");
+        throw Exception("MapUtils-getDateOrNull: Failed to parse DateTime from $key, error: $e");
+      }
+    }
+    return null;
+  }
+
+  DateTime getDate(String key) {
+    final dateString = getString(key);
+    try {
+      return DateTime.parse(dateString);
+    } catch (e) {
+      logger.e("MapUtils-getDate: Failed to parse DateTime from $key, error: $e");
+      throw Exception("MapUtils-getDate: Failed to parse DateTime from $key, error: $e");
+    }
+  }
+
+
 
 
 }
