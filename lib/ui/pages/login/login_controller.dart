@@ -13,8 +13,8 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
 class LoginController extends GetxController {
-  final emailEC = TextEditingController(text: "raghavendra.kj@bluecrimson.in");
-  final passwordEC = TextEditingController(text: "Raghu@1234");
+  final emailEC = TextEditingController(text: "");
+  final passwordEC = TextEditingController(text: "");
 
   final formKey = GlobalKey<FormState>();
 
