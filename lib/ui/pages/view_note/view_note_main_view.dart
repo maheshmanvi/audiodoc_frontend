@@ -29,6 +29,48 @@ class _NoteDetails extends GetView<ViewNoteController> {
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _TabBar(),
+        Expanded(child: _TabBarView()),
+      ],
+    );
+  }
+}
+
+class _TabBar extends GetView<ViewNoteController> {
+  const _TabBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return TabBar(
+      controller: controller.tabController,
+      tabs: const [
+        Tab(text: 'Note Details'),
+        Tab(text: 'Summary'),
+      ],
+    );
+  }
+}
+
+class _TabBarView extends GetView<ViewNoteController> {
+  const _TabBarView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return TabBarView(
+      controller: controller.tabController,
+      children: [
+        _NoteDetailsView(),
+        _SummaryView(),
+      ],
+    );
+  }
+}
+
+class _NoteDetailsView extends GetView<ViewNoteController> {
+  @override
+  Widget build(BuildContext context) {
     return Form(
       key: controller.formKey,
       child: Container(
@@ -56,6 +98,15 @@ class _NoteDetails extends GetView<ViewNoteController> {
         ),
       ),
     );
+  }
+}
+
+class _SummaryView extends GetView<ViewNoteController> {
+  const _SummaryView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.shrink();
   }
 }
 

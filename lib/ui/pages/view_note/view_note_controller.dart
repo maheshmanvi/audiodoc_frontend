@@ -23,7 +23,9 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart';
 
-class ViewNoteController extends GetxController {
+class ViewNoteController extends GetxController with GetSingleTickerProviderStateMixin {
+
+
   final String id;
   final BuildContext context;
 
@@ -31,7 +33,14 @@ class ViewNoteController extends GetxController {
 
   final NotesController _notesController = Get.find();
 
-  ViewNoteController(this.context, {required this.id});
+
+  late final TabController tabController;
+
+
+  ViewNoteController(this.context, {required this.id}) {
+    tabController = TabController(length: 2, vsync: this);
+  }
+
 
   void goBack(BuildContext context) {
     context.goNamed(AppRoutes.nameNotesHome);

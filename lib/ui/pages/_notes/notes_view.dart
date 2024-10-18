@@ -24,7 +24,7 @@ class _NotesViewState extends State<NotesView> {
     controller = Get.put(NotesController());
 
     Get.delete<RecordingController>();
-    Get.put(RecordingController());
+    Get.put(RecordingController(context: context));
 
     super.initState();
   }

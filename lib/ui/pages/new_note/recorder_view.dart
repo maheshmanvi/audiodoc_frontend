@@ -13,27 +13,144 @@ class RecorderView extends GetView<NewNotesController> {
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Card(
+          margin: const EdgeInsets.all(0),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+          elevation: 2,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: context.theme.colors.surface,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Obx(() {
+              if (controller.recordingController.isRecording()) {
+                return RecordingView();
+              } else if (controller.recordingController.isPaused()) {
+                return PausedView();
+              } else {
+                return StoppedView();
+              }
+            }),
+          ),
+        ),
+        Obx(() {
+          if (controller.recordingResult.value == null) {
+            return SizedBox.shrink();
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 16),
+              _LiveTranscription(
+                transcription: _LiveTranscription.buildText(context, controller.recordingResult.value!.sttResult ?? 'Transcription not available'),
+                isExpanded: RxBool(true),
+              ),
+            ],
+          );
+        }),
+        Obx(() {
+          if (!controller.recordingController.isRecording() && !controller.recordingController.isPaused()) {
+            return SizedBox.shrink();
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 16),
+              _LiveTranscription(
+                transcription: Obx(
+                  () => _LiveTranscription.buildText(
+                    context,
+                    controller.recordingController.sttResultString.value,
+                  ),
+                ),
+                isExpanded: RxBool(true),
+              ),
+            ],
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _LiveTranscription extends StatelessWidget {
+  final Widget transcription;
+  final RxBool isExpanded;
+
+  const _LiveTranscription({super.key, required this.transcription, required this.isExpanded});
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.all(0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       elevation: 2,
       child: Container(
-        padding: const EdgeInsets.all(16),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: context.theme.colors.surface,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Obx(() {
-          if (controller.recordingController.isRecording()) {
-            return RecordingView();
-          } else if (controller.recordingController.isPaused()) {
-            return PausedView();
-          } else {
-            return StoppedView();
-          }
-        }),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Transcription',
+                      style: context.theme.textTheme.bodyMedium?.copyWith(color: context.theme.colors.contentPrimary, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    icon: Obx(() => Icon(isExpanded.value ? Icons.expand_less : Icons.expand_more)),
+                    onPressed: () => isExpanded.toggle(),
+                  ),
+                ],
+              ),
+            ),
+            Obx(
+              () {
+                if (!isExpanded.value) {
+                  return SizedBox.shrink();
+                }
+                return DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                        color: context.theme.colors.divider,
+                      ),
+                    ),
+                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: 100),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      child: transcription,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  static Widget buildText(BuildContext context, String text) {
+    return Text(
+      text,
+      style: context.theme.textTheme.bodyMedium?.copyWith(color: context.theme.colors.contentPrimary),
     );
   }
 }
@@ -221,11 +338,15 @@ class RecordingTimer extends GetView<NewNotesController> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      return Text(
-        Duration2Human.to_mm_ss(controller.recordingController.duration.value),
-        style: context.theme.textTheme.bodyMedium?.copyWith(color: context.theme.colors.contentPrimary, fontWeight: FontWeight.bold),
-      );
-    });
+    return Column(
+      children: [
+        Obx(() {
+          return Text(
+            Duration2Human.to_mm_ss(controller.recordingController.duration.value),
+            style: context.theme.textTheme.bodyMedium?.copyWith(color: context.theme.colors.contentPrimary, fontWeight: FontWeight.bold),
+          );
+        }),
+      ],
+    );
   }
 }

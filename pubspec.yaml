@@ -27,6 +27,7 @@ dependencies:
   logger: ^2.4.0
   get_it: ^8.0.0
   session_storage: ^0.0.1
+  speech_to_text: ^7.0.0
 
 
 

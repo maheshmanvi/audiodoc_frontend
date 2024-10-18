@@ -9,7 +9,7 @@ import 'infrastructure/sl.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Env.live();
+  await Env.hardcoded();
 
   inject();
 

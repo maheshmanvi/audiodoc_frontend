@@ -8,14 +8,21 @@ class RecordingResult {
   final Duration duration;
   final DateTime createdAt;
   final String _timeStampBasedName;
+  final String? sttResult;
 
-  RecordingResult({required this.path, required this.duration, required this.createdAt, required String timestampBasedName}) : _timeStampBasedName = timestampBasedName;
+  RecordingResult({
+    required this.path,
+    required this.duration,
+    required this.createdAt,
+    required String timestampBasedName,
+    this.sttResult,
+  }) : _timeStampBasedName = timestampBasedName;
 
-  factory RecordingResult.now({required String path, required Duration duration}) {
+  factory RecordingResult.now({required String path, required Duration duration, String? sttResult}) {
     DateTime now = DateTime.now();
     String timeStamp = "${now.day}${now.month}${now.year}${now.hour}${now.minute}${now.second}";
     String name = "REC_$timeStamp";
-    return RecordingResult(path: path, duration: duration, createdAt: DateTime.now(), timestampBasedName: name);
+    return RecordingResult(path: path, duration: duration, createdAt: DateTime.now(), timestampBasedName: name, sttResult: (sttResult == null || sttResult.isEmpty) ? null : sttResult);
   }
 
   String getRecodingName() {
@@ -30,5 +37,8 @@ class RecordingResult {
     return bytes;
   }
 
-
+  @override
+  String toString() {
+    return 'RecordingResult{path: $path, duration: $duration, createdAt: $createdAt, _timeStampBasedName: $_timeStampBasedName, sttResult: $sttResult}';
+  }
 }
