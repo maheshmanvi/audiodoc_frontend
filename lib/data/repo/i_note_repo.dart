@@ -66,4 +66,12 @@ class INoteRepo implements NoteRepo {
     final response = await _apiClient.dio.post('/notes/${request.id}', data: formData);
     return SaveNoteResponse.fromMap(response.data);
   }
+
+
+  @override
+  Future<Note> summarize(String id) async {
+    final response = await _apiClient.dio.post('/notes/$id/summarize');
+    return Note.fromMap(response.data);
+  }
+
 }

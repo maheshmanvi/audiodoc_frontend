@@ -21,11 +21,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
-import 'package:path/path.dart';
 
 class ViewNoteController extends GetxController with GetSingleTickerProviderStateMixin {
-
-
   final String id;
   final BuildContext context;
 
@@ -33,14 +30,11 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
 
   final NotesController _notesController = Get.find();
 
-
   late final TabController tabController;
-
 
   ViewNoteController(this.context, {required this.id}) {
     tabController = TabController(length: 2, vsync: this);
   }
-
 
   void goBack(BuildContext context) {
     context.goNamed(AppRoutes.nameNotesHome);
@@ -86,6 +80,11 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
 
       final noteVm = NoteVm.fromEntity(response.right);
       _populateNoteVm(noteVm);
+      if (noteVm.recording.summary == null) {
+        summarize();
+      } else {
+        summarizeState.value = DataState.success(data: noteVm);
+      }
 
       initLoadState.value = DataState.success(data: noteVm);
     } catch (e) {
@@ -220,9 +219,7 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
       fetchNote();
 
       _notesController.fetchNotes();
-
-    }
-    catch (e) {
+    } catch (e) {
       logger.e(e);
       AppException appException = AppException.fromAnyException(e);
       AppSnackBar.showErrorToast(context, message: appException.message);
@@ -244,5 +241,27 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
         patientDobEC.text = TimeAgoUtil.defaultDateFormat(value);
       }
     });
+  }
+
+  final summarizeState = DataState.rxInitial<NoteVm>();
+
+  Future<void> summarize() async {
+    try {
+      summarizeState.value = DataState.loading();
+      await waitForFrame();
+
+      final response = await _noteUseCases.summarize(id);
+      if (response.isLeft) throw response.left;
+
+      final noteVm = NoteVm.fromEntity(response.right);
+      _populateNoteVm(noteVm);
+
+      summarizeState.value = DataState.success(data: noteVm);
+      initLoadState.value = DataState.success(data: noteVm);
+    }
+    catch (e) {
+      AppException appException = AppException.fromAnyException(e);
+      summarizeState.value = DataState.error(exception: appException);
+    }
   }
 }

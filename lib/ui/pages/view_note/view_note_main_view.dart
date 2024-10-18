@@ -1,5 +1,6 @@
 import 'package:audiodoc/commons/utils/time_ago_util.dart';
 import 'package:audiodoc/theme/theme_extension.dart';
+import 'package:audiodoc/ui/pages/view_note/summary_view.dart';
 import 'package:audiodoc/ui/pages/view_note/view_note_controller.dart';
 import 'package:audiodoc/ui/utils/note_validation_util.dart';
 import 'package:audiodoc/ui/widgets/attachment/attachment_view.dart';
@@ -62,7 +63,7 @@ class _TabBarView extends GetView<ViewNoteController> {
       controller: controller.tabController,
       children: [
         _NoteDetailsView(),
-        _SummaryView(),
+        SummaryView(),
       ],
     );
   }
@@ -98,15 +99,6 @@ class _NoteDetailsView extends GetView<ViewNoteController> {
         ),
       ),
     );
-  }
-}
-
-class _SummaryView extends GetView<ViewNoteController> {
-  const _SummaryView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox.shrink();
   }
 }
 
