@@ -20,26 +20,4 @@ Future<void> main() async {
 
   runApp(AppView());
 
-  /* Get.put(RecordingController());
-  runApp(MyApp());*/
 }
-
-/*
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = ThemeData(
-      primarySwatch: Colors.blue,
-      visualDensity: VisualDensity.adaptivePlatformDensity,
-      textTheme: GoogleFonts.poppinsTextTheme(),
-    );
-
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'AudioDoc',
-      theme: theme,
-      home: HomeView(),
-    );
-  }
-}
-*/
