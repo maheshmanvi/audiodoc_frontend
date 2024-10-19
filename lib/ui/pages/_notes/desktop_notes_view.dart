@@ -13,6 +13,7 @@ class DesktopNotesView extends GetView<NotesController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: DesktopAppBarView(),
       body: Row(
         children: [

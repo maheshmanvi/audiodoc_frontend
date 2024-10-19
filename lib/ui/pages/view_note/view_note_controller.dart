@@ -33,7 +33,7 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
   late final TabController tabController;
 
   ViewNoteController(this.context, {required this.id}) {
-    tabController = TabController(length: 2, vsync: this);
+    tabController = TabController(length: 3, vsync: this);
   }
 
   void goBack(BuildContext context) {
@@ -246,6 +246,7 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
   final summarizeState = DataState.rxInitial<NoteVm>();
 
   Future<void> summarize() async {
+    if (summarizeState.value.isLoading) return;
     try {
       summarizeState.value = DataState.loading();
       await waitForFrame();
@@ -258,8 +259,7 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
 
       summarizeState.value = DataState.success(data: noteVm);
       initLoadState.value = DataState.success(data: noteVm);
-    }
-    catch (e) {
+    } catch (e) {
       AppException appException = AppException.fromAnyException(e);
       summarizeState.value = DataState.error(exception: appException);
     }

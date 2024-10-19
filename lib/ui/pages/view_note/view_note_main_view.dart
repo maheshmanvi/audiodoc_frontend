@@ -1,6 +1,7 @@
 import 'package:audiodoc/commons/utils/time_ago_util.dart';
 import 'package:audiodoc/theme/theme_extension.dart';
 import 'package:audiodoc/ui/pages/view_note/summary_view.dart';
+import 'package:audiodoc/ui/pages/view_note/transcription_view.dart';
 import 'package:audiodoc/ui/pages/view_note/view_note_controller.dart';
 import 'package:audiodoc/ui/utils/note_validation_util.dart';
 import 'package:audiodoc/ui/widgets/attachment/attachment_view.dart';
@@ -45,10 +46,14 @@ class _TabBar extends GetView<ViewNoteController> {
   @override
   Widget build(BuildContext context) {
     return TabBar(
+      isScrollable: true,
+      padding: const EdgeInsets.symmetric(horizontal: 0),
       controller: controller.tabController,
+      tabAlignment: TabAlignment.start,
       tabs: const [
         Tab(text: 'Note Details'),
         Tab(text: 'Summary'),
+        Tab(text: 'Transcription'),
       ],
     );
   }
@@ -64,6 +69,7 @@ class _TabBarView extends GetView<ViewNoteController> {
       children: [
         _NoteDetailsView(),
         SummaryView(),
+        TranscriptionView(),
       ],
     );
   }

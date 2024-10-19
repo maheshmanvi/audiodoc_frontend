@@ -58,6 +58,7 @@ class _AttachmentPreviewDialogViewState extends State<AttachmentPreviewDialogVie
         child: ClipRRect(
           borderRadius: BorderRadius.circular(4.0),
           child: Scaffold(
+            resizeToAvoidBottomInset: false,
             backgroundColor: Colors.white,
             appBar: AppBar(
               backgroundColor: Colors.white,

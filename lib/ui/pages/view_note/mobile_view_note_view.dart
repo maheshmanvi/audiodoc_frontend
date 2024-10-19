@@ -13,6 +13,7 @@ class MobileViewNoteView extends GetView<ViewNoteController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: MobileNavBackAppBar(
         title: "View Note",
         titleWidget: Obx(

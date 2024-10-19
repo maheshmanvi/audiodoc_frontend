@@ -10,6 +10,7 @@ class MobileNewNoteView extends GetView<NewNotesController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: MobileNavBackAppBar(
         title: "New Note",
         onBack: () => controller.goBack(context),

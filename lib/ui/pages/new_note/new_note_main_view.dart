@@ -4,7 +4,6 @@ import 'package:audiodoc/theme/theme_extension.dart';
 import 'package:audiodoc/ui/pages/new_note/new_note_controller.dart';
 import 'package:audiodoc/ui/pages/new_note/recorder_view.dart';
 import 'package:audiodoc/ui/utils/note_validation_util.dart';
-import 'package:audiodoc/ui/widgets/attachment/attach_files_view.dart';
 import 'package:audiodoc/ui/widgets/attachment/attachment_view.dart';
 import 'package:audiodoc/ui/widgets/audio_player/audio_player_view.dart';
 import 'package:audiodoc/ui/widgets/file_type_icons.dart';
@@ -128,7 +127,10 @@ class _Form extends GetView<NewNotesController> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.attach_file, size: 18,),
+                          Icon(
+                            Icons.attach_file,
+                            size: 18,
+                          ),
                           const SizedBox(width: 12),
                           Text(AppStrings.btnAttachFile),
                         ],
@@ -136,8 +138,7 @@ class _Form extends GetView<NewNotesController> {
                     ),
                   ],
                 );
-              }
-              else {
+              } else {
                 FileTypeIcon fileTypeIcon = FileTypeIcon.fromExtension(controller.selectedLAttachment.value!.type.extension);
                 return AttachmentView(
                   name: controller.selectedLAttachment.value!.fileName,
