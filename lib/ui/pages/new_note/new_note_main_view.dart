@@ -249,7 +249,8 @@ class _SaveButton extends GetView<NewNotesController> {
       () {
         return ElevatedButton(
           onPressed: this.enabled ? () => controller.saveRecording(context) : null,
-          child: Text(AppStrings.btnSaveNote),
+          // child: Text(AppStrings.btnSaveNote),
+          child: Text((controller.saveState.value.isLoading) ? AppStrings.btnSavingNote : AppStrings.btnSaveNote),
           style: context.theme.elevatedButtonTheme.style?.copyWith(
             minimumSize: WidgetStatePropertyAll(Size(120, 48)),
           ),
@@ -267,6 +268,14 @@ class _SaveButton extends GetView<NewNotesController> {
     }
     return true;
   }
+
+
+  bool get isLoading {
+    return controller.saveState.value.isLoading;
+  }
+
+
+
 }
 
 class _CancelButton extends StatelessWidget {

@@ -15,4 +15,6 @@ class AppStrings {
 
   static String btnAttachFile = "Attach File";
 
+  static var btnSavingNote = "Saving Note...";
+
 }
