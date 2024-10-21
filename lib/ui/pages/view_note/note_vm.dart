@@ -1,6 +1,8 @@
 import 'package:audiodoc/domain/entity/attachment.dart';
-import 'package:audiodoc/domain/entity/note.dart';
+import '../../../domain/entity/note.dart';
 import 'package:audiodoc/domain/entity/recording.dart';
+import 'package:audiodoc/ui/pages/view_note/transcription_result.dart';
+
 
 class NoteVm {
   final String id;
@@ -12,6 +14,7 @@ class NoteVm {
   final String? patientName;
   final DateTime? patientDob;
   final String? patientMobile;
+  final TranscribeResult? transcribeResult;
 
 
   NoteVm({
@@ -24,6 +27,7 @@ class NoteVm {
     this.patientName,
     this.patientDob,
     this.patientMobile,
+    this.transcribeResult,
   });
 
   factory NoteVm.fromEntity(Note note) {
@@ -37,6 +41,7 @@ class NoteVm {
       patientName: note.patientName,
       patientDob: note.patientDob,
       patientMobile: note.patientMobile,
+      transcribeResult: note.transcribeResult,
     );
   }
 
@@ -47,4 +52,3 @@ class NoteVm {
 
 
 }
-
