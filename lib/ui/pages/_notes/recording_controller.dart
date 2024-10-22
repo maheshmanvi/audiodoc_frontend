@@ -32,7 +32,6 @@ class RecordingController extends GetxController {
   int speechSession = 1;
   final RxString sttResultString = RxString("");
 
-
   _updateSttResult(String result) {
     sttResultMap.value[speechSession]?.value = result;
 
@@ -43,8 +42,6 @@ class RecordingController extends GetxController {
 
     logger.d("STT Result: $sttResultString");
   }
-
-
 
   bool get isSpeechAvailable => speech.isAvailable;
 
@@ -58,6 +55,9 @@ class RecordingController extends GetxController {
       if (status == RecordState.stop) {
         _stopTimer();
       }
+    }).onError((error) {
+      logger.e("Failed to record audio: $error");
+      AppSnackBar.showErrorToast(context, message: "Failed to record audio: $error");
     });
 
     bool available = await speech.initialize(
@@ -99,7 +99,13 @@ class RecordingController extends GetxController {
     if (await recorder.hasPermission()) {
       RecordConfig recordConfig = const RecordConfig(encoder: AudioEncoder.wav);
       _recordedBytes.clear();
-      await recorder.start(recordConfig, path: "");
+      try {
+        await recorder.start(recordConfig, path: "");
+      } catch (e) {
+        logger.e("Failed to start recording: $e");
+        AppSnackBar.showErrorToast(context, message: "Audio recording is not available on this device");
+        return;
+      }
 
       if (isSpeechAvailable) {
         _startSpeechToText();
@@ -118,7 +124,6 @@ class RecordingController extends GetxController {
     _stopTimer();
 
     speech.stop();
-
 
     if (path == null) {
       return null;
@@ -163,7 +168,7 @@ class RecordingController extends GetxController {
   }
 
   Future<void> _startSpeechToText() async {
-    if(speech.isListening) {
+    if (speech.isListening) {
       speech.stop();
     }
     sttResultMap.value.clear();
@@ -179,10 +184,10 @@ class RecordingController extends GetxController {
   }
 
   Future<void> _resumeTTS() async {
-    if(speech.isListening) {
+    if (speech.isListening) {
       speech.stop();
     }
-    speechSession =  speechSession + 1;
+    speechSession = speechSession + 1;
     logger.d("Resuming STT with the new session: $speechSession");
     sttResultMap.value[speechSession] = RxString("");
     await speech.listen(
