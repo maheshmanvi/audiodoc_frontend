@@ -11,6 +11,7 @@ import 'package:audiodoc/infrastructure/sl.dart';
 import 'package:audiodoc/theme/theme_extension.dart';
 import 'package:audiodoc/ui/pages/_notes/notes_controller.dart';
 import 'package:audiodoc/ui/pages/_notes/recording_controller.dart';
+import 'package:audiodoc/ui/pages/view_note/view_note_controller.dart';
 import 'package:audiodoc/ui/router/app_router.dart';
 import 'package:audiodoc/ui/widgets/attachment/attachment_preview_dialog_view.dart';
 import 'package:audiodoc/ui/widgets/confirm_dialog.dart';

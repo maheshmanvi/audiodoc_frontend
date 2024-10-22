@@ -10,6 +10,8 @@ import 'package:audiodoc/ui/widgets/file_type_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../view_note/view_note_controller.dart';
+
 class NewNoteMainView extends GetView<NewNotesController> {
   final double bodyMargin;
 

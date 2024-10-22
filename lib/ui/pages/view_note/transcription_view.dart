@@ -57,6 +57,12 @@ class _TranscriptionView extends GetView<ViewNoteController> {
                   ),
                 ),
               ),
+              Divider(height: 100,),
+              Text("Cues:"),
+              Builder(builder: (ctx) {
+                if(controller.note.recording.cues == null)  return Text("No Cues");
+                else return Text(controller.note.recording.cues ?? "-");
+              }),
             ],
           ),
         ),

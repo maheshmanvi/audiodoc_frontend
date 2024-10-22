@@ -168,14 +168,34 @@ class _AudioControls extends GetView<AudioPlayerViewController> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
-      child: Row(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _RewindButton(),
-          const SizedBox(width: 16),
-          _PlayPauseButton(),
-          const SizedBox(width: 16),
-          _FastForwardButton(),
+          Obx(() {
+            if (controller.isPlaying.value) {
+              return SizedBox(
+                height: 20,
+                child: Text(
+                  controller.getCurrentSubtitle(),
+                  style: TextStyle(color: Colors.white, backgroundColor: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              );
+            } else {
+              return SizedBox(height: 20,);
+            }
+          }),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _RewindButton(),
+              const SizedBox(width: 16),
+              _PlayPauseButton(),
+              const SizedBox(width: 16),
+              _FastForwardButton(),
+            ],
+          ),
         ],
       ),
     );

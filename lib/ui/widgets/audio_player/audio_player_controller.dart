@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:ui';
 
+import 'package:audiodoc/ui/pages/view_note/view_note_controller.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../../pages/view_note/cue.dart';
 import 'player_speed.dart';
 
 class AudioPlayerViewController extends GetxController {
@@ -12,6 +14,13 @@ class AudioPlayerViewController extends GetxController {
   final String url;
   late final AudioSource audioSource;
   final RxBool isRenaming = false.obs;
+
+  final ViewNoteController viewNoteController = Get.find<ViewNoteController>();
+  List<Cue> cues = [];
+
+  // final SubtitleController subtitleController = SubtitleController();
+  // late VideoPlayerController videoPlayerController;
+  // final RxBool isVideoPlaying = false.obs;
 
   // Observable for tracking the current position
   final Rx<Duration> currentPosition = Rx<Duration>(Duration.zero);
@@ -27,11 +36,70 @@ class AudioPlayerViewController extends GetxController {
     required this.url, required this.onRenameComplete,
   }) {
     audioSource = AudioSource.uri(Uri.parse(url));
+    _parseCues();
+
+    // _initializeSubtitles();
   }
+
+  void _parseCues() {
+    String? srtContent = viewNoteController.note.recording.cues;
+    List<String> lines = srtContent!.split('\n\n');
+
+    for (var line in lines) {
+      var parts = line.split('\n');
+      if (parts.length < 3) continue;
+
+      // Parse the sequence number
+      int seqNumber = int.parse(parts[0]);
+
+      // Parse the time range
+      var times = parts[1].split(' --> ');
+      var start = _parseDuration(times[0]);
+      var end = _parseDuration(times[1]);
+
+      // Get the subtitle text
+      String text = parts.sublist(2).join('\n');
+
+      cues.add(Cue(seqNumber: seqNumber, start: start, end: end, text: text));
+    }
+  }
+
+  Duration _parseDuration(String time) {
+    final parts = time.split(',');
+    var seconds = Duration(
+      hours: int.parse(parts[0].split(':')[0]),
+      minutes: int.parse(parts[0].split(':')[1]),
+      seconds: int.parse(parts[0].split(':')[2]),
+      milliseconds: int.parse(parts[1]),
+    );
+    return seconds;
+  }
+
+
+//   void _initializeSubtitles() {
+//     String srtContent = """
+// 1
+// 00:00:01,000 --> 00:00:05,000
+// Welcome to the audio player!
+//
+// 2
+// 00:00:06,000 --> 00:00:10,000
+// Enjoy the subtitles!
+// """;
+//
+//     // Check if the subtitle controller is initialized before setting content
+//     if (subtitleController != null) {
+//       subtitleController.subtitlesContent = srtContent; // Set the subtitle content
+//       subtitleController.subtitleType = SubtitleType.srt; // Set the type
+//     }
+//     print("Subtitles initialized: ${subtitleController.subtitlesContent}");
+//   }
+
 
   @override
   void onInit() {
     super.onInit();
+
     player.setAudioSource(audioSource);
     player.setSpeed(speed.value.value);
     player.setLoopMode(LoopMode.off);
@@ -58,6 +126,17 @@ class AudioPlayerViewController extends GetxController {
     player.durationStream.listen((duration) {
       totalDuration.value = duration ?? Duration.zero; // Update the total duration
     });
+    
+  }
+
+  // Method to get the current subtitle
+  String getCurrentSubtitle() {
+    for (var cue in cues) {
+      if (currentPosition.value >= cue.start && currentPosition.value <= cue.end) {
+        return cue.text;
+      }
+    }
+    return '';
   }
 
   @override
@@ -119,6 +198,17 @@ class AudioPlayerViewController extends GetxController {
     _stopPositionTracking(); // Ensure no multiple timers are running
     _positionTimer = Timer.periodic(Duration(seconds: 1), (timer) {
       currentPosition.value = player.position; // Update the current position
+
+      // Only update subtitle content if it has been initialized
+      // if (subtitleController.subtitlesContent!.isNotEmpty) {
+      //   try {
+      //     subtitleController.updateSubtitleContent(content: subtitleController.subtitlesContent!);
+      //   } catch (e) {
+      //     print("Error updating subtitles: $e");
+      //   }
+      // }
+
+      // subtitleController.updateSubtitleContent(content: viewNoteController.note.recording.cues!);
     });
   }
 
@@ -179,3 +269,4 @@ class AudioPlayerViewController extends GetxController {
     isRenaming.value = !isRenaming.value;
   }
 }
+
