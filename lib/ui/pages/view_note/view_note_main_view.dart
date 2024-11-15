@@ -10,6 +10,9 @@ import 'package:audiodoc/ui/widgets/file_type_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../widgets/audio_player/audio_player_controller.dart';
+import '../../widgets/subtitles/subtitles_view.dart';
+
 class ViewNoteMainView extends GetView<ViewNoteController> {
   const ViewNoteMainView({super.key});
 
@@ -68,7 +71,12 @@ class _TabBarView extends GetView<ViewNoteController> {
       controller: controller.tabController,
       children: [
         _NoteDetailsView(),
-        SummaryView(),
+        Obx (() {
+          if(controller.note.recording.summary == null){
+            controller.summarize();
+          }
+          return SummaryView();
+        }),
         TranscriptionView(),
       ],
     );
@@ -94,7 +102,10 @@ class _NoteDetailsView extends GetView<ViewNoteController> {
                 liveFileName: controller.titleEC,
                 url: controller.getNoteFullURL(controller.note),
                 onRenameComplete: () => controller.updateNotes(),
+                cues: controller.note.recording.getCues(),
               ),
+              const SizedBox(height: 16),
+              SubtitlesView(),
               const SizedBox(height: 16),
               _AttachmentView(),
               const SizedBox(height: 16),
@@ -107,6 +118,7 @@ class _NoteDetailsView extends GetView<ViewNoteController> {
     );
   }
 }
+
 
 class _AttachmentView extends GetView<ViewNoteController> {
   const _AttachmentView({super.key});

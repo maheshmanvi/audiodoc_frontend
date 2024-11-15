@@ -1,8 +1,11 @@
 import 'package:audiodoc/theme/theme_extension.dart';
+import 'package:audiodoc/domain/entity/cue.dart';
+import 'package:audiodoc/ui/pages/view_note/view_note_controller.dart';
 import 'package:audiodoc/ui/widgets/audio_avatar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:path/path.dart';
 
 import 'audio_player_controller.dart';
 
@@ -10,13 +13,14 @@ class AudioPlayerView extends StatefulWidget {
   final TextEditingController liveFileName;
   final String url;
   final VoidCallback onRenameComplete;
+  final List<Cue> cues;
 
-  const AudioPlayerView({
-    super.key,
-    required this.liveFileName,
-    required this.url,
-    required this.onRenameComplete,
-  });
+  const AudioPlayerView(
+      {super.key,
+      required this.liveFileName,
+      required this.url,
+      required this.onRenameComplete,
+      required this.cues});
 
   @override
   State<AudioPlayerView> createState() => _AudioPlayerViewState();
@@ -24,13 +28,25 @@ class AudioPlayerView extends StatefulWidget {
 
 class _AudioPlayerViewState extends State<AudioPlayerView> {
   late final AudioPlayerViewController controller;
+  late BuildContext currentBuildContext;
 
   @override
   void initState() {
     super.initState();
     Get.delete<AudioPlayerViewController>();
-    controller = AudioPlayerViewController(url: widget.url, onRenameComplete: widget.onRenameComplete);
+    controller = AudioPlayerViewController(
+      url: widget.url,
+      onRenameComplete: widget.onRenameComplete,
+      cues: widget.cues,
+    );
     Get.put(controller);
+
+    // Initialize ViewNoteController after the widget tree is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!Get.isRegistered<ViewNoteController>()) {
+        Get.put(ViewNoteController(currentBuildContext, id: ''));
+      }
+    });
   }
 
   @override
@@ -41,6 +57,8 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
 
   @override
   Widget build(BuildContext context) {
+    currentBuildContext = context;
+
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(4),
@@ -92,7 +110,7 @@ class _AudioThumbnailView extends GetView<AudioPlayerViewController> {
                   children: [
                     Obx(
                       () {
-                        if(controller.isRenaming.value) {
+                        if (controller.isRenaming.value) {
                           return TextField(
                             controller: liveFileName,
                             style: context.theme.textTheme.bodyMedium?.copyWith(
@@ -106,7 +124,8 @@ class _AudioThumbnailView extends GetView<AudioPlayerViewController> {
                           builder: (context, value, child) {
                             return Text(
                               value.text,
-                              style: context.theme.textTheme.bodyMedium?.copyWith(
+                              style:
+                                  context.theme.textTheme.bodyMedium?.copyWith(
                                 fontWeight: context.theme.typo.fw.semibold,
                               ),
                               textAlign: TextAlign.start,
@@ -150,7 +169,8 @@ class _AudioSeekBar extends GetView<AudioPlayerViewController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      var progress = controller.currentPosition.value.inMilliseconds / controller.totalDuration.value.inMilliseconds;
+      var progress = controller.currentPosition.value.inMilliseconds /
+          controller.totalDuration.value.inMilliseconds;
       if (progress.isNaN) {
         progress = 0;
       }
@@ -171,21 +191,8 @@ class _AudioControls extends GetView<AudioPlayerViewController> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Obx(() {
-            if (controller.isPlaying.value) {
-              return SizedBox(
-                height: 20,
-                child: Text(
-                  controller.getCurrentSubtitle(),
-                  style: TextStyle(color: Colors.white, backgroundColor: Colors.grey),
-                  textAlign: TextAlign.center,
-                ),
-              );
-            } else {
-              return SizedBox(height: 20,);
-            }
-          }),
-          const SizedBox(height: 8),
+          // SubtitlesOldView(controller),
+          // const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -223,8 +230,13 @@ class _PlayPauseButton extends GetView<AudioPlayerViewController> {
         } else {
           iconData = Icons.play_arrow;
         }
+        String url = controller.url;
+        bool isBlobUrl = url.startsWith("blob:http://localhost");
+        bool isRecordingUrl = url.startsWith("http://localhost");
+
         return IconButton(
           icon: Icon(iconData),
+          // onPressed: isRecordingUrl ? controller.cues.isNotEmpty ? controller.playPause : null : controller.playPause,
           onPressed: controller.playPause,
         );
       },
@@ -255,9 +267,82 @@ class _PlayerDurationView extends GetView<AudioPlayerViewController> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Obx(() => Text(formatDuration(controller.currentPosition.value), style: context.theme.textTheme.bodySmall)),
-        Obx(() => Text("/" + formatDuration(controller.totalDuration.value), style: context.theme.textTheme.bodySmall)),
+        Obx(() => Text(formatDuration(controller.currentPosition.value),
+            style: context.theme.textTheme.bodySmall)),
+        Obx(() => Text("/" + formatDuration(controller.totalDuration.value),
+            style: context.theme.textTheme.bodySmall)),
       ],
     );
   }
+}
+
+class SubtitlesOldView extends StatelessWidget{
+  final AudioPlayerViewController audioPlayerViewController;
+  late ViewNoteController controller;
+
+  SubtitlesOldView(this.audioPlayerViewController);
+
+
+  @override
+  Widget build(BuildContext context) {
+    controller = Get.put(ViewNoteController(context, id: ''));
+    String url = audioPlayerViewController.url;
+    bool isBlobUrl = url.startsWith("blob:http://localhost");
+    bool isRecordingUrl = url.startsWith("http://localhost");
+
+    if (url.isEmpty) {
+      return SizedBox.shrink();
+    }
+    
+    return isBlobUrl ? SizedBox.shrink() : Obx(() {
+      return controller.summarizeState.value.when(
+        initial: () => SizedBox.shrink(),
+        // loading: () => Center(child: CircularProgressIndicator()),
+        loading: () => Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: 15,
+                width: 15,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.0,
+                  color: context.theme.colors.primaryTint50,
+                ),
+              ),
+              SizedBox(width: 8),
+              Text(
+                "Please wait subtitles loading...",
+                style: TextStyle(color: context.theme.colors.primaryTint50,),
+              ),
+            ],
+          ),
+        ),
+        error: (exception) => Text(
+          "Failed to load subtitles",
+          style: TextStyle(color: Colors.red),
+          textAlign: TextAlign.center,
+        ),
+        data: (data) {
+          controller.update();
+          audioPlayerViewController.areCuesLoaded.value = true;
+          // if (audioPlayerViewController.isPlaying.value && audioPlayerViewController.areCuesLoaded.value && isRecordingUrl) {
+          if (audioPlayerViewController.areCuesLoaded.value && isRecordingUrl) {
+            return SelectionArea(
+              child: SizedBox(
+                height: 20,
+                child: Text(
+                  audioPlayerViewController.getCurrentSubtitle(),
+                  // style: TextStyle(color: Colors.white, backgroundColor: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+          return isBlobUrl ? SizedBox.shrink() : SizedBox(height: 20);
+        },
+      );
+    });
+  }
+
 }

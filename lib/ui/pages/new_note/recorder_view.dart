@@ -2,78 +2,113 @@ import 'package:audiodoc/commons/utils/duration2human.dart';
 import 'package:audiodoc/theme/theme_extension.dart';
 import 'package:audiodoc/ui/pages/new_note/new_note_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
+import 'dart:html' as html;
 
 double _bigIconSize = 32;
 double _bigIconRadius = 32;
 double _bigIconPadding = 16;
 
-class RecorderView extends GetView<NewNotesController> {
+class RecorderView extends GetView<NewNoteController> {
   const RecorderView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+    return Stack(
       children: [
-        Card(
-          margin: const EdgeInsets.all(0),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-          elevation: 2,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: context.theme.colors.surface,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Obx(() {
-              if (controller.recordingController.isRecording()) {
-                return RecordingView();
-              } else if (controller.recordingController.isPaused()) {
-                return PausedView();
-              } else {
-                return StoppedView();
-              }
-            }),
-          ),
-        ),
-        Obx(() {
-          if (controller.recordingResult.value == null) {
-            return SizedBox.shrink();
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 16),
-              _LiveTranscription(
-                transcription: _LiveTranscription.buildText(context, controller.recordingResult.value!.sttResult ?? 'Transcription not available'),
-                isExpanded: RxBool(true),
+        Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Card(
+            margin: const EdgeInsets.all(0),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            elevation: 2,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: context.theme.colors.surface,
+                borderRadius: BorderRadius.circular(4),
               ),
-            ],
-          );
-        }),
-        Obx(() {
-          if (!controller.recordingController.isRecording() && !controller.recordingController.isPaused()) {
-            return SizedBox.shrink();
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 16),
-              _LiveTranscription(
-                transcription: Obx(
-                  () => _LiveTranscription.buildText(
-                    context,
-                    controller.recordingController.sttResultString.value,
+              child: Obx(() {
+                if (controller.recordingController.isRecording()) {
+                  return RecordingView();
+                } else if (controller.recordingController.isPaused()) {
+                  return PausedView();
+                } else {
+                  return StoppedView();
+                }
+              }),
+            ),
+          ),
+          Obx(() {
+            if (controller.recordingResult.value == null) {
+              return SizedBox.shrink();
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 16),
+                _LiveTranscription(
+                  transcription: _LiveTranscription.buildText(context, controller.recordingResult.value!.sttResult ?? 'Transcription not available'),
+                  isExpanded: RxBool(true),
+                ),
+              ],
+            );
+          }),
+          Obx(() {
+            if (!controller.recordingController.isRecording() && !controller.recordingController.isPaused()) {
+              return SizedBox.shrink();
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 16),
+                _LiveTranscription(
+                  transcription: Obx(
+                    () => _LiveTranscription.buildText(
+                      context,
+                      controller.recordingController.sttResultString.value,
+                    ),
+                  ),
+                  isExpanded: RxBool(true),
+                ),
+              ],
+            );
+          }),
+        ],
+      ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Tooltip(
+            message: 'Select an audio file',
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () async {
+                  await controller.pickAudioFile(context);
+                },
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: context.theme.colors.primaryTint90,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.audio_file_outlined,
+                    color: context.theme.colors.primary,
+                    size: 24,
                   ),
                 ),
-                isExpanded: RxBool(true),
               ),
-            ],
-          );
-        }),
-      ],
+            ),
+          ),
+        ),
+
+      ]
     );
   }
 }
@@ -155,7 +190,7 @@ class _LiveTranscription extends StatelessWidget {
   }
 }
 
-class RecordingView extends GetView<NewNotesController> {
+class RecordingView extends GetView<NewNoteController> {
   const RecordingView({super.key});
 
   @override
@@ -206,7 +241,7 @@ class RecordingView extends GetView<NewNotesController> {
   }
 }
 
-class PausedView extends GetView<NewNotesController> {
+class PausedView extends GetView<NewNoteController> {
   const PausedView({super.key});
 
   @override
@@ -255,7 +290,7 @@ class PausedView extends GetView<NewNotesController> {
   }
 }
 
-class StoppedView extends GetView<NewNotesController> {
+class StoppedView extends GetView<NewNoteController> {
   const StoppedView({super.key});
 
   @override
@@ -275,6 +310,7 @@ class StoppedView extends GetView<NewNotesController> {
         ),
         const SizedBox(height: 16),
         RecordingTimer(),
+
       ],
     );
   }
@@ -333,7 +369,7 @@ class RecorderButton extends StatelessWidget {
   }
 }
 
-class RecordingTimer extends GetView<NewNotesController> {
+class RecordingTimer extends GetView<NewNoteController> {
   const RecordingTimer({super.key});
 
   @override

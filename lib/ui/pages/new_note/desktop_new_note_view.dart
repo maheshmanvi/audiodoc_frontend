@@ -3,7 +3,7 @@ import 'package:audiodoc/ui/pages/new_note/new_note_main_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class DesktopNewNoteView extends GetView<NewNotesController> {
+class DesktopNewNoteView extends GetView<NewNoteController> {
   const DesktopNewNoteView({super.key});
 
   @override

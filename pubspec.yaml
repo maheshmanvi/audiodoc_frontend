@@ -29,6 +29,8 @@ dependencies:
   session_storage: ^0.0.1
   speech_to_text: ^7.0.0
   flutter_markdown: ^0.7.4
+  file_saver: ^0.2.14
+  docx_template: ^0.4.0
 
 
 
@@ -84,3 +86,5 @@ flutter:
           style: italic
   assets:
     - assets/images/
+    - assets/templates/template_two.docx
+    - assets/templates/template.docx

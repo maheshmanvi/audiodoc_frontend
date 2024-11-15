@@ -22,6 +22,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../domain/entity/cue.dart';
+import '../../../domain/entity/update_cues_request.dart';
+import '../../widgets/audio_player/audio_player_controller.dart';
+
 class ViewNoteController extends GetxController with GetSingleTickerProviderStateMixin {
   final String id;
   final BuildContext context;
@@ -31,6 +35,9 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
   final NotesController _notesController = Get.find();
 
   late final TabController tabController;
+
+  late AudioPlayerViewController audioPlayerViewController;
+
 
   ViewNoteController(this.context, {required this.id}) {
     tabController = TabController(length: 3, vsync: this);
@@ -80,10 +87,35 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
 
       final noteVm = NoteVm.fromEntity(response.right);
       _populateNoteVm(noteVm);
+
+      // if (noteVm.recording.summary == null) {
+      //   summarize();
+      // } else {
+      //   summarizeState.value = DataState.success(data: noteVm);
+      // }
+
       if (noteVm.recording.summary == null) {
-        summarize();
+
+      }else{
+          summarizeState.value = DataState.success(data: noteVm);
+      }
+
+      if (noteVm.recording.cues == null) {
+        transcribe();
       } else {
-        summarizeState.value = DataState.success(data: noteVm);
+        transcribeState.value = DataState.success(data: noteVm);
+      }
+
+      // Initialize AudioPlayerViewController after the Note is fetched
+      final recording = noteVm.recording;
+      if (recording.relativeUrl.isNotEmpty) {
+        audioPlayerViewController = AudioPlayerViewController(
+          url: _noteUseCases.getBaseUrl(recording.relativeUrl),
+          onRenameComplete: () {
+          },
+          cues: recording.getCues(),
+        );
+        Get.put<AudioPlayerViewController>(audioPlayerViewController);
       }
 
       initLoadState.value = DataState.success(data: noteVm);
@@ -244,9 +276,13 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
   }
 
   final summarizeState = DataState.rxInitial<NoteVm>();
+  final transcribeState = DataState.rxInitial<NoteVm>();
 
   Future<void> summarize() async {
-    if (summarizeState.value.isLoading) return;
+    // if (summarizeState.value.isLoading) return;
+
+    if(note.recording.summary != null) return;
+
     try {
       summarizeState.value = DataState.loading();
       await waitForFrame();
@@ -257,6 +293,14 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
       final noteVm = NoteVm.fromEntity(response.right);
       _populateNoteVm(noteVm);
 
+      final audioPlayerViewController = Get.find<AudioPlayerViewController>();
+
+      final recording = noteVm.recording;
+      if (recording.cues != null) {
+        final newCues = recording.getCues();
+        audioPlayerViewController.cues.addAll(newCues);
+      }
+
       summarizeState.value = DataState.success(data: noteVm);
       initLoadState.value = DataState.success(data: noteVm);
     } catch (e) {
@@ -264,4 +308,69 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
       summarizeState.value = DataState.error(exception: appException);
     }
   }
+
+  Future<void> transcribe() async {
+    if (transcribeState.value.isLoading) return;
+    try {
+      transcribeState.value = DataState.loading();
+      await waitForFrame();
+
+      final response = await _noteUseCases.transcribe(id);
+      if (response.isLeft) throw response.left;
+
+      final noteVm = NoteVm.fromEntity(response.right);
+      _populateNoteVm(noteVm);
+
+      final audioPlayerViewController = Get.find<AudioPlayerViewController>();
+
+      final recording = noteVm.recording;
+      if (recording.cues != null) {
+        final newCues = recording.getCues();
+        audioPlayerViewController.cues.addAll(newCues);
+      }
+
+      transcribeState.value = DataState.success(data: noteVm);
+      initLoadState.value = DataState.success(data: noteVm);
+    } catch (e) {
+      AppException appException = AppException.fromAnyException(e);
+      transcribeState.value = DataState.error(exception: appException);
+    }
+  }
+
+
+  // Add the updateCues method using UpdateCuesRequest
+  Future<void> updateCues(String cues) async {
+    try {
+      overlayController.show();
+
+      // Create an UpdateCuesRequest for the cue update
+      UpdateCuesRequest updateCuesRequest = UpdateCuesRequest(
+        noteId: id,
+        cues: cues,  // Use the subtitle text as the cue
+      );
+
+      // Send the UpdateCuesRequest to the use case to update the cues
+      final response = await _noteUseCases.updateCues(updateCuesRequest);
+      if (response.isLeft) throw response.left;
+
+      // If the cues are updated, update the cue text in the note object
+      note.recording.cues = cues;
+
+      AppSnackBar.showSuccessToast(context, message: 'Subtitles (Cues) updated successfully');
+      fetchNote();
+    } catch (e) {
+      logger.e(e);
+      AppException appException = AppException.fromAnyException(e);
+      AppSnackBar.showErrorToast(context, message: appException.message);
+    } finally {
+      overlayController.hide();
+    }
+  }
+
+  void refreshCues(){
+
+  }
+
+
+
 }

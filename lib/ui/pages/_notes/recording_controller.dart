@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:audiodoc/commons/exception/app_exception.dart';
@@ -64,6 +65,7 @@ class RecordingController extends GetxController {
       onStatus: (status) => sttStatus.value = status,
       onError: (speechError) {
         AppSnackBar.showErrorToast(context, message: "Failed to initialize speech to text: ${speechError.errorMsg}");
+        logger.d("Speech-to-text error: ${speechError.errorMsg}");
       },
     );
 
@@ -115,10 +117,10 @@ class RecordingController extends GetxController {
 
   Future<RecordingResult?> stopRecording() async {
     String? path = await recorder.stop();
+    log("stopRecording: path: $path");
     _stopTimer();
 
     speech.stop();
-
 
     if (path == null) {
       return null;
@@ -163,6 +165,8 @@ class RecordingController extends GetxController {
   }
 
   Future<void> _startSpeechToText() async {
+    stt.SpeechListenOptions listenOptions = stt.SpeechListenOptions(partialResults: true, cancelOnError: false);
+
     if(speech.isListening) {
       speech.stop();
     }
@@ -170,15 +174,17 @@ class RecordingController extends GetxController {
     speechSession = 1;
     sttResultMap.value[speechSession] = RxString("");
     await speech.listen(
+      listenOptions: listenOptions,
       onResult: (result) {
         _updateSttResult(result.recognizedWords);
       },
       listenFor: Duration(hours: 1),
-      localeId: 'en_US',
     );
   }
 
   Future<void> _resumeTTS() async {
+    stt.SpeechListenOptions listenOptions = stt.SpeechListenOptions(partialResults: true, cancelOnError: false);
+
     if(speech.isListening) {
       speech.stop();
     }
@@ -186,6 +192,7 @@ class RecordingController extends GetxController {
     logger.d("Resuming STT with the new session: $speechSession");
     sttResultMap.value[speechSession] = RxString("");
     await speech.listen(
+      listenOptions: listenOptions,
       onResult: (result) {
         _updateSttResult(result.recognizedWords);
       },

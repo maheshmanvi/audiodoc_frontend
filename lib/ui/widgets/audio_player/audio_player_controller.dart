@@ -6,7 +6,7 @@ import 'package:audiodoc/ui/pages/view_note/view_note_controller.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 
-import '../../pages/view_note/cue.dart';
+import '../../../domain/entity/cue.dart';
 import 'player_speed.dart';
 
 class AudioPlayerViewController extends GetxController {
@@ -14,13 +14,11 @@ class AudioPlayerViewController extends GetxController {
   final String url;
   late final AudioSource audioSource;
   final RxBool isRenaming = false.obs;
+  late final RxList<Cue> cues = <Cue>[].obs;
+  final RxString subtitleText = ''.obs;
+  final RxBool areCuesLoaded = false.obs;
 
-  final ViewNoteController viewNoteController = Get.find<ViewNoteController>();
-  List<Cue> cues = [];
 
-  // final SubtitleController subtitleController = SubtitleController();
-  // late VideoPlayerController videoPlayerController;
-  // final RxBool isVideoPlaying = false.obs;
 
   // Observable for tracking the current position
   final Rx<Duration> currentPosition = Rx<Duration>(Duration.zero);
@@ -33,68 +31,11 @@ class AudioPlayerViewController extends GetxController {
   final VoidCallback onRenameComplete;
 
   AudioPlayerViewController({
-    required this.url, required this.onRenameComplete,
+    required this.url, required this.onRenameComplete, required List<Cue> cues,
   }) {
+    this.cues.addAll(cues);
     audioSource = AudioSource.uri(Uri.parse(url));
-    _parseCues();
-
-    // _initializeSubtitles();
   }
-
-  void _parseCues() {
-    String? srtContent = viewNoteController.note.recording.cues;
-    List<String> lines = srtContent!.split('\n\n');
-
-    for (var line in lines) {
-      var parts = line.split('\n');
-      if (parts.length < 3) continue;
-
-      // Parse the sequence number
-      int seqNumber = int.parse(parts[0]);
-
-      // Parse the time range
-      var times = parts[1].split(' --> ');
-      var start = _parseDuration(times[0]);
-      var end = _parseDuration(times[1]);
-
-      // Get the subtitle text
-      String text = parts.sublist(2).join('\n');
-
-      cues.add(Cue(seqNumber: seqNumber, start: start, end: end, text: text));
-    }
-  }
-
-  Duration _parseDuration(String time) {
-    final parts = time.split(',');
-    var seconds = Duration(
-      hours: int.parse(parts[0].split(':')[0]),
-      minutes: int.parse(parts[0].split(':')[1]),
-      seconds: int.parse(parts[0].split(':')[2]),
-      milliseconds: int.parse(parts[1]),
-    );
-    return seconds;
-  }
-
-
-//   void _initializeSubtitles() {
-//     String srtContent = """
-// 1
-// 00:00:01,000 --> 00:00:05,000
-// Welcome to the audio player!
-//
-// 2
-// 00:00:06,000 --> 00:00:10,000
-// Enjoy the subtitles!
-// """;
-//
-//     // Check if the subtitle controller is initialized before setting content
-//     if (subtitleController != null) {
-//       subtitleController.subtitlesContent = srtContent; // Set the subtitle content
-//       subtitleController.subtitleType = SubtitleType.srt; // Set the type
-//     }
-//     print("Subtitles initialized: ${subtitleController.subtitlesContent}");
-//   }
-
 
   @override
   void onInit() {
@@ -126,18 +67,62 @@ class AudioPlayerViewController extends GetxController {
     player.durationStream.listen((duration) {
       totalDuration.value = duration ?? Duration.zero; // Update the total duration
     });
+
+    // Listen for position changes
+    player.positionStream.listen((position) {
+      currentPosition.value = position;
+    });
     
   }
-
+  //
   // Method to get the current subtitle
+  // String getCurrentSubtitle() {
+  //   for (var cue in cues) {
+  //     if (currentPosition.value >= cue.start && currentPosition.value <= cue.end) {
+  //       return cue.text;
+  //     }
+  //   }
+  //   return '';
+  // }
+
+  // String getCurrentSubtitle() {
+  //   // Access the current position as a Duration
+  //   Duration currentTime = currentPosition.value;
+  //
+  //   // Loop through the cues and compare the current position with each cue's start and end
+  //   for (var cue in cues) {
+  //     if (currentTime >= cue.start && currentTime <= cue.end) {
+  //       return cue.text; // Return the subtitle text for the matching cue
+  //     }
+  //   }
+  //
+  //   return ''; // Return empty string if no matching cue found
+  // }
+
   String getCurrentSubtitle() {
+    // Access the current position as a Duration
+    Duration currentTime = currentPosition.value;
+
+    // Loop through the cues and compare the current position with each cue's start and end
     for (var cue in cues) {
-      if (currentPosition.value >= cue.start && currentPosition.value <= cue.end) {
-        return cue.text;
+      if (currentTime >= cue.start && currentTime <= cue.end) {
+        return cue.text; // Return the subtitle text for the matching cue
       }
     }
-    return '';
+
+    return ''; // Return empty string if no matching cue found
   }
+
+
+
+// Helper function to check if a cue is currently active based on playback position
+//   bool isCueActive(Cue cue) {
+//     const tolerance = 0.2;
+//     return currentPosition.value >= cue.start - tolerance && currentPosition.value <= cue.end + tolerance;
+//   }
+
+// You can use `isCueActive` method to dynamically check the active cue and render subtitles accordingly.
+
 
   @override
   void onClose() {
@@ -147,6 +132,7 @@ class AudioPlayerViewController extends GetxController {
   }
 
   Future<void> play() async {
+
     await player.play();
   }
 
@@ -242,16 +228,28 @@ class AudioPlayerViewController extends GetxController {
     seek(newPosition);
   }
 
+  // Future<void> playPause() async {
+  //   if (isPlaying.value) {
+  //     await pause();
+  //   } else {
+  //     // if at end, then restart
+  //     if (currentPosition.value == totalDuration.value) {
+  //       await restart();
+  //     } else {
+  //       await play();
+  //     }
+  //   }
+  // }
+
   Future<void> playPause() async {
     if (isPlaying.value) {
-      await pause();
+      await player.pause();
     } else {
-      // if at end, then restart
+      // Restart if we reach the end
       if (currentPosition.value == totalDuration.value) {
-        await restart();
-      } else {
-        await play();
+        await player.seek(Duration.zero);
       }
+      await player.play();
     }
   }
 
@@ -270,3 +268,40 @@ class AudioPlayerViewController extends GetxController {
   }
 }
 
+
+
+class SubtitleManager {
+  final RxList<Cue> cues = RxList<Cue>([]); // List of subtitle cues
+  final Rx<Duration> currentPosition = Rx<Duration>(Duration.zero); // Current playback position
+  final Rx<String> currentSubtitle = Rx<String>('');
+
+  // Method to update subtitle based on current position
+  void updateSubtitle() {
+    // Loop through cues and find the one matching the current playback position
+    for (var cue in cues) {
+      if (currentPosition.value >= cue.start && currentPosition.value <= cue.end) {
+        currentSubtitle.value = cue.text;
+        return;
+      }
+    }
+
+    currentSubtitle.value = ''; // No active cue
+  }
+
+  // Add a new cue
+  void addCue(Cue cue) {
+    cues.add(cue);
+    cues.sort((a, b) => a.start.compareTo(b.start)); // Ensure cues are sorted
+  }
+
+  // Remove a cue based on sequence number
+  void removeCue(int seqNumber) {
+    cues.removeWhere((cue) => cue.seqNumber == seqNumber);
+  }
+
+  // Set current position, trigger subtitle update
+  void setCurrentPosition(Duration position) {
+    currentPosition.value = position;
+    updateSubtitle(); // Update the subtitle immediately
+  }
+}

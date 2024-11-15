@@ -12,7 +12,7 @@ import 'package:get/get.dart';
 
 import '../view_note/view_note_controller.dart';
 
-class NewNoteMainView extends GetView<NewNotesController> {
+class NewNoteMainView extends GetView<NewNoteController> {
   final double bodyMargin;
 
   const NewNoteMainView({
@@ -50,6 +50,7 @@ class NewNoteMainView extends GetView<NewNotesController> {
                           liveFileName: controller.titleEC,
                           url: controller.recordingResult.value!.path,
                           onRenameComplete: () => {},
+                          cues: [],
                         ),
                       ],
                     );
@@ -100,7 +101,7 @@ class NewNoteMainView extends GetView<NewNotesController> {
   }
 }
 
-class _Form extends GetView<NewNotesController> {
+class _Form extends GetView<NewNoteController> {
   final double bodyMargin;
 
   const _Form({
@@ -117,7 +118,7 @@ class _Form extends GetView<NewNotesController> {
         children: [
           const SizedBox(height: 24),
           _TitleField(),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           Obx(
             () {
               if (controller.selectedLAttachment.value == null) {
@@ -168,7 +169,7 @@ class _Form extends GetView<NewNotesController> {
   }
 }
 
-class _PatientName extends GetView<NewNotesController> {
+class _PatientName extends GetView<NewNoteController> {
   const _PatientName({super.key});
 
   @override
@@ -184,7 +185,7 @@ class _PatientName extends GetView<NewNotesController> {
   }
 }
 
-class _PatientDob extends GetView<NewNotesController> {
+class _PatientDob extends GetView<NewNoteController> {
   const _PatientDob({super.key});
 
   @override
@@ -204,7 +205,7 @@ class _PatientDob extends GetView<NewNotesController> {
   }
 }
 
-class _PatientMobile extends GetView<NewNotesController> {
+class _PatientMobile extends GetView<NewNoteController> {
   const _PatientMobile({super.key});
 
   @override
@@ -222,7 +223,7 @@ class _PatientMobile extends GetView<NewNotesController> {
   }
 }
 
-class _TitleField extends GetView<NewNotesController> {
+class _TitleField extends GetView<NewNoteController> {
   const _TitleField({super.key});
 
   @override
@@ -240,7 +241,7 @@ class _TitleField extends GetView<NewNotesController> {
   }
 }
 
-class _SaveButton extends GetView<NewNotesController> {
+class _SaveButton extends GetView<NewNoteController> {
   const _SaveButton({
     Key? key,
   }) : super(key: key);

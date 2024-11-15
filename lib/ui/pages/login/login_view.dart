@@ -49,53 +49,55 @@ class _Body extends GetView<LoginController> {
                   color: context.theme.colors.surface,
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: BrandLogo(),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Login to your account',
-                          style: context.theme.textTheme.titleMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Enter your email and password to login',
-                          style: context.theme.textTheme.bodySmall,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 32),
-                        _EmailField(controller: controller),
-                        const SizedBox(height: 48),
-                        _PasswordField(controller: controller),
-                        SizedBox(height: 48),
-                        Obx(
-                          () {
-                            return ElevatedButton(
-                              onPressed: (controller.state.value.isLoading) ? null : () => controller.login(context),
-                              child: _buildButtonContent(context),
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: Size(double.infinity, 50),
-                                backgroundColor: context.theme.colors.primary,
-                                foregroundColor: context.theme.colors.onPrimary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
+                    child: AutofillGroup(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: BrandLogo(),
                               ),
-                            );
-                          },
-                        ),
-                      ],
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Login to your account',
+                            style: context.theme.textTheme.titleMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Enter your email and password to login',
+                            style: context.theme.textTheme.bodySmall,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 32),
+                          _EmailField(controller: controller),
+                          const SizedBox(height: 48),
+                          _PasswordField(controller: controller),
+                          SizedBox(height: 48),
+                          Obx(
+                            () {
+                              return ElevatedButton(
+                                onPressed: (controller.state.value.isLoading) ? null : () => controller.login(context),
+                                child: _buildButtonContent(context),
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: Size(double.infinity, 50),
+                                  backgroundColor: context.theme.colors.primary,
+                                  foregroundColor: context.theme.colors.onPrimary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -156,6 +158,7 @@ class _EmailField extends StatelessWidget {
         focusedBorder: _LoginInputDecorationUtil.focusedInputBorder(context),
       ),
       validator: (value) => LoginValidator.validateEmail(value),
+      autofillHints: [AutofillHints.email],
     );
   }
 }
@@ -198,6 +201,7 @@ class _PasswordField extends StatelessWidget {
           ),
         ),
         validator: (value) => LoginValidator.validatePassword(value),
+        autofillHints: [AutofillHints.password],
       ),
     );
   }

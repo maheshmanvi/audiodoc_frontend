@@ -132,7 +132,7 @@ class NotesController extends GetxController {
       fetchNotes();
     }
 
-    // if it is currently opened, the refresh the notes
+    // if it is currently opened, then refresh the notes
     ViewNoteController? viewNoteController = (Get.isRegistered<ViewNoteController>()) ? Get.find<ViewNoteController>() : null;
     if ((viewNoteController?.initLoadState.value.isSuccess == true) && (viewNoteController?.id == id) == true) {
       viewNoteController?.fetchNote();

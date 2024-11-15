@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/src/state.dart';
 
+import '../view_note/view_note_controller.dart';
+
 class NewNoteView extends StatefulWidget {
   final GoRouterState? routerState;
 
@@ -25,13 +27,12 @@ class _NewNoteViewState extends State<NewNoteView> {
 
   @override
   void initState() {
-    Get.delete<NewNotesController>();
+    Get.delete<NewNoteController>();
 
     final startString = widget.routerState?.uri.queryParameters['start'];
     bool start = startString == 'true';
 
-
-    Get.put(NewNotesController(start: start, context: context));
+    Get.put(NewNoteController(start: start, context: context));
     super.initState();
   }
 

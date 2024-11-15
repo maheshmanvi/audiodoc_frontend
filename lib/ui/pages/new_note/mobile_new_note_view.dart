@@ -4,7 +4,7 @@ import 'package:audiodoc/ui/widgets/mobile_nav_back_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class MobileNewNoteView extends GetView<NewNotesController> {
+class MobileNewNoteView extends GetView<NewNoteController> {
   const MobileNewNoteView({super.key});
 
   @override

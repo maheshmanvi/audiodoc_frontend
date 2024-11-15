@@ -8,6 +8,9 @@ import 'package:audiodoc/domain/entity/update_note_request.dart';
 import 'package:audiodoc/domain/repo/note_repo.dart';
 import 'package:dio/dio.dart';
 
+import '../../commons/exception/network_exception.dart';
+import '../../domain/entity/update_cues_request.dart';
+
 class INoteRepo implements NoteRepo {
   final ApiClient _apiClient;
 
@@ -73,5 +76,40 @@ class INoteRepo implements NoteRepo {
     final response = await _apiClient.dio.post('/notes/$id/summarize');
     return Note.fromMap(response.data);
   }
+
+  @override
+  Future<Note> transcribe(String noteId) async {
+    try {
+      final response = await _apiClient.dio.post('/notes/$noteId/transcribe');
+      return Note.fromMap(response.data);
+    } on Exception catch (e) {
+      throw NetworkException.fromDioError(e);
+    }
+  }
+
+
+  @override
+  Future<SaveNoteResponse> updateCues(UpdateCuesRequest updateCuesRequest) async {
+    try {
+      final formData = {
+        'cues': updateCuesRequest.cues,  // Do not send 'id', as it's passed in the URL
+      };
+
+      final response = await _apiClient.dio.put(
+        '/notes/${updateCuesRequest.noteId}/cues', // Change to PUT instead of POST
+        data: formData,
+        options: Options(contentType: 'application/json'), // Content type should be JSON
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update cues');
+      }
+
+      return SaveNoteResponse.fromMap(response.data);
+    } catch (e) {
+      throw NetworkException.fromDioError(e);
+    }
+  }
+
 
 }

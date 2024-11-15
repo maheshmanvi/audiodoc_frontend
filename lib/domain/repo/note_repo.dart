@@ -5,6 +5,8 @@ import 'package:audiodoc/domain/entity/l_attachment.dart';
 import 'package:audiodoc/domain/entity/note.dart';
 import 'package:audiodoc/domain/entity/update_note_request.dart';
 
+import '../entity/update_cues_request.dart';
+
 abstract class NoteRepo {
 
   Future<SaveNoteResponse> saveNote(SaveNoteRequest request);
@@ -29,4 +31,7 @@ abstract class NoteRepo {
 
   Future<Note> summarize(String noteId);
 
+  Future<Note> transcribe(String noteId);
+
+  Future<SaveNoteResponse> updateCues(UpdateCuesRequest updateCuesRequest);
 }

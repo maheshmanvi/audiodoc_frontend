@@ -9,6 +9,8 @@ import 'package:audiodoc/domain/entity/note.dart';
 import 'package:audiodoc/domain/entity/update_note_request.dart';
 import 'package:audiodoc/domain/repo/note_repo.dart';
 
+import '../entity/update_cues_request.dart';
+
 class NoteUseCases {
   final NoteRepo _noteRepo;
 
@@ -93,4 +95,23 @@ class NoteUseCases {
       return Left(NetworkException.fromDioError(e));
     }
   }
+
+  Future<Either<AppException, Note>> transcribe(String noteId) async {
+    try {
+      final response = await _noteRepo.transcribe(noteId);
+      return Right(response);
+    } catch (e) {
+      return Left(NetworkException.fromDioError(e));
+    }
+  }
+
+  Future<Either<AppException, SaveNoteResponse>> updateCues(UpdateCuesRequest updateCuesRequest) async {
+    try {
+      final response = await _noteRepo.updateCues(updateCuesRequest);
+      return Right(response);
+    } catch (e) {
+      return Left(AppException.fromAnyException(e));
+    }
+  }
+
 }
