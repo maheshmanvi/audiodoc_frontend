@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../commons/exception/app_exception.dart';
 import '../../../commons/utils/time_ago_util.dart';
 import '../../../domain/entity/cue.dart';
+import '../../widgets/snackbar/app_snackbar.dart';
 
 class TranscriptionView extends GetView<ViewNoteController> {
   const TranscriptionView({super.key});
@@ -30,298 +31,669 @@ class TranscriptionView extends GetView<ViewNoteController> {
   }
 }
 
-class _TranscriptionView extends StatelessWidget {
+/*class _TranscriptionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<ViewNoteController>();
-    final cues = controller.note.recording.getCues();
+    controller.initializeCues();
     final formattedDate = DateFormat('yMMMd').format(controller.note.createdAt);
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: SingleChildScrollView(
-        child: SelectionArea(
-          child: Column(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300, width: 1),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: context.theme.colorScheme.primary,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            controller.note.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          // InkWell(
-                          //     onTap: () {
-                          //       controller.refreshCues();
-                          //     },
-                          //     child: Icon(
-                          //       Icons.refresh,
-                          //       color: context.theme.colorScheme.onPrimary,
-                          //       size: 18,
-                          //     ),
-                          //   ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          TimeAgoUtil.formatTimeAgo(controller.note.createdAt),
-                          style: TextStyle(color: Colors.black87),
-                        ),
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 16.0, left: 16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (var cue in cues) _MessageCard(cue: cue, cues: controller.note.recording.getCues()),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20,),
-              _SubtitlesSection(controller: controller),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
-//
-// class _MessageCard extends StatelessWidget {
-//   final Cue cue;
-//
-//   const _MessageCard({required this.cue, Key? key}) : super(key: key);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     bool isSpeaker1 = cue.text.startsWith('Speaker 1');
-//     Color backgroundColor = isSpeaker1
-//         ? Colors.blue.shade50
-//         : Colors.green.shade50;
-//     Color speakerColor = isSpeaker1 ? Colors.blue : Colors.green;
-//
-//     return Align(
-//       alignment: isSpeaker1 ? Alignment.centerLeft : Alignment.centerRight,
-//       child: Container(
-//         margin: const EdgeInsets.symmetric(vertical: 8),
-//         padding: const EdgeInsets.all(12),
-//         decoration: BoxDecoration(
-//           color: backgroundColor,
-//           borderRadius: BorderRadius.circular(12),
-//         ),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Text(
-//               isSpeaker1 ? 'Speaker 1' : 'Speaker 2',
-//               style: TextStyle(
-//                 fontWeight: FontWeight.bold,
-//                 color: speakerColor,
-//               ),
-//             ),
-//             const SizedBox(height: 4),
-//             Text(
-//               cue.text.replaceFirst(RegExp(r'Speaker \d+:\s*'), ''),
-//               style: Theme.of(context).textTheme.bodyLarge,
-//             ),
-//             const SizedBox(height: 4),
-//             Text(
-//               '${_formatDuration(cue.start)} - ${_formatDuration(cue.end)}',
-//               style: Theme.of(context).textTheme.bodySmall,
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-//
-//   String _formatDuration(Duration duration) {
-//     return "${duration.inMinutes.remainder(60).toString().padLeft(2, '0')}:${duration.inSeconds.remainder(60).toString().padLeft(2, '0')}";
-//   }
-// }
-
-class _MessageCard extends StatelessWidget {
-  final Cue cue;
-  final List<Cue> cues;
-
-  const _MessageCard({required this.cue, required this.cues, Key? key})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    // Extract speaker names dynamically
-    final speaker = _extractSpeaker(cue.text);
-    final speakerColor = _getSpeakerColor(speaker);
-    final backgroundColor = _getBackgroundColor(speaker);
-
-    // Check if there are exactly two speakers in the cues
-    bool isTwoSpeakers = _areTwoSpeakers(cues);
-
-    return Align(
-      alignment: isTwoSpeakers && speaker == 'Speaker 1'
-          ? Alignment.centerLeft
-          : isTwoSpeakers && speaker == 'Speaker 2'
-          ? Alignment.centerRight
-          : Alignment.centerLeft, // If more than 2 speakers, align left for all
-
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: backgroundColor, // Dynamically set background color
-          borderRadius: BorderRadius.circular(12),
-        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              speaker,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: speakerColor,
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300, width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _Header(controller: controller, onRefresh: () {controller.refreshCues();},),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        TimeAgoUtil.formatTimeAgo(controller.note.createdAt),
+                        style: const TextStyle(color: Colors.black87),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: controller.cues.map((cue) {
+                        return Obx(() {
+                          if (controller.editingCueId.value == cue.sequence) {
+                            return _EditingContainer(
+                              cue: cue,
+                              controller: controller,
+                              onSave: (updatedText) {
+                                controller.updateCue(cue.sequence, updatedText);
+                              },
+                              onCancel: () {
+                                controller.editingCueId.value = null;
+                              },
+                            );
+                          } else {
+                            return _MessageCard(
+                              cue: cue,
+                              controller: controller,
+                              // onEdit: () => controller.editingCueId.value = cue.sequence,
+                              // onEdit: () => controller.editCue(cue.sequence),
+                              onEdit: () {
+                                controller.editCue(cue.sequence);
+                              },
+                              onRemove: () => controller.removeCue(cue.sequence),
+                            );
+                          }
+                        });
+                      }).toList(),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              cue.text.replaceFirst(RegExp(r'Speaker \d+:\s*'), ''),
-              // Remove speaker prefix
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .bodyLarge,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${_formatDuration(cue.start)} - ${_formatDuration(cue.end)}',
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .bodySmall,
-            ),
+            const SizedBox(height: 20,),
+            _SubtitlesSection(controller: controller),
           ],
         ),
       ),
     );
   }
+}*/
 
-  // Helper method to extract the speaker name dynamically
-  String _extractSpeaker(String text) {
-    final speakerRegEx = RegExp(r'Speaker (\d+):\s*');
-    final match = speakerRegEx.firstMatch(text);
-    if (match != null) {
-      return 'Speaker ${match.group(1)}';
-    }
-    return 'Unknown Speaker';
-  }
-// Helper method to get speaker color dynamically (for 10 speakers)
-  Color _getSpeakerColor(String speaker) {
-    switch (speaker) {
-      case 'Speaker 1':
-        return Colors.blue;
-      case 'Speaker 2':
-        return Colors.green;
-      case 'Speaker 3':
-        return Colors.red;
-      case 'Speaker 4':
-        return Colors.purple;
-      case 'Speaker 5':
-        return Colors.orange;
-      case 'Speaker 6':
-        return Colors.cyan;
-      case 'Speaker 7':
-        return Colors.teal;
-      case 'Speaker 8':
-        return Colors.brown;
-      case 'Speaker 9':
-        return Colors.indigo;
-      case 'Speaker 10':
-        return Colors.amber;
-      default:
-        return Colors.black; // Default color for any undefined speakers
-    }
-  }
-
-// Helper method to get dynamic background color based on speaker (for 10 speakers)
-  Color _getBackgroundColor(String speaker) {
-    switch (speaker) {
-      case 'Speaker 1':
-        return Colors.blue.shade50; // Light blue background for Speaker 1
-      case 'Speaker 2':
-        return Colors.green.shade50; // Light green background for Speaker 2
-      case 'Speaker 3':
-        return Colors.red.shade50; // Light red background for Speaker 3
-      case 'Speaker 4':
-        return Colors.purple.shade50; // Light purple background for Speaker 4
-      case 'Speaker 5':
-        return Colors.orange.shade50; // Light orange background for Speaker 5
-      case 'Speaker 6':
-        return Colors.cyan.shade50; // Light cyan background for Speaker 6
-      case 'Speaker 7':
-        return Colors.teal.shade50; // Light teal background for Speaker 7
-      case 'Speaker 8':
-        return Colors.brown.shade50; // Light brown background for Speaker 8
-      case 'Speaker 9':
-        return Colors.indigo.shade50; // Light indigo background for Speaker 9
-      case 'Speaker 10':
-        return Colors.amber.shade50; // Light amber background for Speaker 10
-      default:
-        return Colors.grey.shade200; // Default background for undefined speakers
-    }
-  }
-
-  // Helper method to format duration (used for showing cue timings)
-  String _formatDuration(Duration duration) {
-    return "${duration.inMinutes.remainder(60).toString().padLeft(
-        2, '0')}:${duration.inSeconds.remainder(60).toString().padLeft(
-        2, '0')}";
-  }
-
-  // Helper method to check if there are exactly two speakers in the cues
-  bool _areTwoSpeakers(List<Cue> cues) {
-    final speakers = <String>{};
-    for (var cue in cues) {
-      final speaker = _extractSpeaker(cue.text);
-      speakers.add(speaker);
-    }
-    return speakers.length == 2;
-  }
-
+class _TranscriptionView extends StatefulWidget {
+  @override
+  _TranscriptionViewState createState() => _TranscriptionViewState();
 }
 
+class _TranscriptionViewState extends State<_TranscriptionView> {
+  late ViewNoteController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.find<ViewNoteController>();
+    controller.initializeCues();
+  }
+
+  void removeCue(int sequence) {
+    // try {
+    //   // Find the cue to remove by sequence number
+    //   // final cueToRemove = controller.cues.firstWhere((cue) => cue.sequence == sequence, orElse: () => null);
+    //
+    //   if (cueToRemove != null) {
+    //     // Remove the cue from the list
+    //     controller.cues.remove(cueToRemove);
+    //
+    //     // Reassign sequence numbers to remaining cues
+    //     for (int i = 0; i < controller.cues.length; i++) {
+    //       controller.cues[i].sequence = i + 1; // Reassign sequence to be in order
+    //     }
+    //
+    //     // Update the cues string
+    //     final updatedCuesString = _convertCuesToString(controller.cues);
+    //
+    //     // Update the database with the new cues string
+    //     controller.updateCues(updatedCuesString).then((_) {
+    //       controller.refreshCues(); // Refresh the cues to update UI
+    //     }).catchError((error) {
+    //       AppSnackBar.showErrorToast(Get.context!, message: 'Failed to delete cue');
+    //     });
+    //   } else {
+    //     print("Cue not found for sequence $sequence");
+    //   }
+    // } catch (e) {
+    //   // Handle errors if any (cue not found, etc.)
+    //   print("Error deleting cue: $e");
+    // }
+  }
+
+
+  String _convertCuesToString(List<Cue> cues) {
+    final cueStrings = cues.map((cue) {
+      final start = _durationToString(cue.start);
+      final end = _durationToString(cue.end);
+      return '${cue.sequence}\n${_convertTimeFormat(start)} --> ${_convertTimeFormat(end)}\n${cue.text}\n';
+    }).join('\n');
+
+    return cueStrings;
+  }
+
+
+  // Converts a Duration to a string in "HH:MM:SS" format
+  String _durationToString(Duration duration) {
+    final hours = duration.inHours.toString().padLeft(2, '0');
+    final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    final milliseconds = (duration.inMilliseconds % 1000).toString().padLeft(3, '0');
+
+    return '$hours:$minutes:$seconds.$milliseconds';
+  }
+
+  // Converts a string in "HH:MM:SS" format to Duration
+  Duration _stringToDuration(String time) {
+    final parts = time.split(':');
+    if (parts.length == 3) {
+      final timeParts = parts[2].split('.');
+      if (timeParts.length == 2) {
+        final hours = int.parse(parts[0]);
+        final minutes = int.parse(parts[1]);
+        final seconds = int.parse(timeParts[0]);
+        final milliseconds = int.parse(timeParts[1]);
+
+        return Duration(hours: hours, minutes: minutes, seconds: seconds, milliseconds: milliseconds);
+      } else {
+        return Duration.zero; // Invalid time format (missing milliseconds)
+      }
+    }
+    return Duration.zero; // Default to 0 duration if invalid
+  }
+
+
+  // Convert dot (.) to comma (,) for time format used in the database
+  String _convertTimeFormat(String time) {
+    return time.replaceAll('.', ',');
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    final formattedDate = DateFormat('yMMMd').format(controller.note.createdAt);
+
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300, width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _Header(controller: controller, onRefresh: () { controller.refreshCues(); },),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        TimeAgoUtil.formatTimeAgo(controller.note.createdAt),
+                        style: const TextStyle(color: Colors.black87),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: controller.cues.map((cue) {
+                        return Obx(() {
+                          if (controller.editingCueId.value == cue.sequence) {
+                            return _EditingContainer(
+                              cue: cue,
+                              controller: controller,
+                              onSave: (updatedText) {
+                                controller.updateCue(cue.sequence, updatedText);
+                              },
+                              onCancel: () {
+                                controller.editingCueId.value = null;
+                              },
+                            );
+                          } else {
+                            return _MessageCard(
+                              cue: cue,
+                              controller: controller,
+                              onEdit: () {
+                                controller.editCue(cue.sequence);
+                              },
+                              onRemove: () => removeCue(cue.sequence),
+                            );
+                          }
+                        });
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // const SizedBox(height: 20),
+            // _SubtitlesSection(controller: controller),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class _Header extends StatefulWidget {
+  final ViewNoteController controller;
+  final VoidCallback onRefresh;
+
+  const _Header({required this.controller, required this.onRefresh, Key? key})
+      : super(key: key);
+
+  @override
+  _HeaderState createState() => _HeaderState();
+}
+
+class _HeaderState extends State<_Header> {
+  bool isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: context.theme.colorScheme.primary,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            widget.controller.note.title,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          InkWell(
+            onTap: () {
+              widget.onRefresh();
+            },
+            child: Icon(
+              Icons.refresh,
+              color: context.theme.colorScheme.onPrimary,
+              size: 18,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+class _MessageCard extends StatefulWidget {
+  final Cue cue;
+  final ViewNoteController controller;
+  final VoidCallback onEdit;
+  final VoidCallback onRemove;
+
+  const _MessageCard({
+    required this.cue,
+    required this.controller,
+    required this.onEdit,
+    required this.onRemove,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  _MessageCardState createState() => _MessageCardState();
+}
+
+class _MessageCardState extends State<_MessageCard> {
+  bool isHovered = false;
+  bool isMenuOpen = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = widget.controller;
+    final cue = widget.cue;
+
+    return MouseRegion(
+          onEnter: (_) => setState(() => isHovered = true),
+          onExit: (_) {
+            setState(() {
+              isHovered = false;
+              isMenuOpen = false;
+            });
+          },
+          child: Align(
+            alignment: controller.numberOfSpeakers.value == 2
+                ? (cue.speakerNumber == 1 ? Alignment.centerLeft : Alignment.centerRight)
+                : Alignment.centerLeft,
+            child: Stack(
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: widget.controller.getBackgroundColor(cue.speakerName),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 150,
+                    maxWidth: 500,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        cue.speakerName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: widget.controller.getSpeakerColor(cue.speakerName),
+                          // color: speakerColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        cue.text
+                            .replaceFirst(RegExp(r'^.*?:\s*'), '')
+                            .trim(),
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${controller.formatDurationWithoutMilliSeconds(cue.start)} - ${controller.formatDurationWithoutMilliSeconds(cue.end)}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                // More actions button (Edit, Remove)
+                if(isHovered && !isMenuOpen)
+                  Positioned(
+                    top: 14,
+                    right: 4,
+                    child: PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, size: 18),
+                      onSelected: (value) {
+                        print("SELECTED");
+                        if (value == 'edit') {
+                          print("Editing cue: ${cue.sequence}");
+                          controller.editCue(cue.sequence);
+                        } else if (value == 'remove') {
+                          widget.onRemove();
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.edit, size: 16),
+                              const SizedBox(width: 4),
+                              Text("Edit", style: const TextStyle(fontSize: 12)),
+                            ],
+                          ),
+                          onTap: (){
+                            print("Editing cue: ${cue.sequence}");
+                            controller.editCue(cue.sequence);
+                          },
+                        ),
+                        PopupMenuItem(
+                          value: 'remove',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.delete, size: 16),
+                              const SizedBox(width: 4),
+                              Text("Remove", style: const TextStyle(fontSize: 12)),
+                            ],
+                          ),
+                          onTap: (){
+                            widget.onRemove();
+                          },
+                        ),
+                      ],
+                    ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+  }
+}
+
+
+class _EditingContainer extends StatefulWidget {
+  final Cue cue;
+  final ViewNoteController controller;
+  final Function(Cue updatedText) onSave;
+  final VoidCallback onCancel;
+
+  const _EditingContainer({
+    required this.cue,
+    required this.controller,
+    required this.onSave,
+    required this.onCancel,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  _EditingContainerState createState() => _EditingContainerState();
+}
+
+class _EditingContainerState extends State<_EditingContainer> {
+  late TextEditingController _textController;
+  late TextEditingController _startTimeController;
+  late TextEditingController _endTimeController;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.cue.text);
+    _startTimeController = TextEditingController(text: _durationToString(widget.cue.start));
+    _endTimeController = TextEditingController(text: _durationToString(widget.cue.end));
+
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    _startTimeController.dispose();
+    _endTimeController.dispose();
+    super.dispose();
+  }
+
+  // Converts a Duration to a string in "HH:MM:SS" format
+  String _durationToString(Duration duration) {
+    final hours = duration.inHours.toString().padLeft(2, '0');
+    final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    final milliseconds = (duration.inMilliseconds % 1000).toString().padLeft(3, '0');
+
+    return '$hours:$minutes:$seconds.$milliseconds';
+  }
+
+  // Converts a string in "HH:MM:SS" format to Duration
+  Duration _stringToDuration(String time) {
+    final parts = time.split(':');
+    if (parts.length == 3) {
+      final timeParts = parts[2].split('.');
+      if (timeParts.length == 2) {
+        final hours = int.parse(parts[0]);
+        final minutes = int.parse(parts[1]);
+        final seconds = int.parse(timeParts[0]);
+        final milliseconds = int.parse(timeParts[1]);
+
+        return Duration(hours: hours, minutes: minutes, seconds: seconds, milliseconds: milliseconds);
+      } else {
+        return Duration.zero; // Invalid time format (missing milliseconds)
+      }
+    }
+    return Duration.zero; // Default to 0 duration if invalid
+  }
+
+  // Time picker to select a time and convert to Duration
+  Future<void> _selectTime(TextEditingController controller) async {
+    final TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(DateTime(1970, 1, 1,
+          int.parse(controller.text.split(':')[0]),
+          int.parse(controller.text.split(':')[1]))
+      ),
+    );
+    if (selectedTime != null) {
+      final formattedTime = _durationToString(
+          Duration(hours: selectedTime.hour, minutes: selectedTime.minute)
+      );
+      controller.text = formattedTime;
+    }
+  }
+
+  // Helper method to convert cue list to string format
+  String _convertCuesToString(List<Cue> cues) {
+    final cueStrings = cues.map((cue) {
+      final start = _durationToString(cue.start);
+      final end = _durationToString(cue.end);
+      return '${cue.sequence}\n${_convertTimeFormat(start)} --> ${_convertTimeFormat(end)}\n${cue.text}\n';
+    }).join('\n');
+
+    return cueStrings;
+  }
+
+  // Convert dot (.) to comma (,) for time format used in the database
+  String _convertTimeFormat(String time) {
+    return time.replaceAll('.', ',');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _textController,
+            maxLines: null,
+            decoration: InputDecoration(
+              labelText: 'Edit Cue Text',
+              border: OutlineInputBorder(),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey.shade700),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey.shade400),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10,),
+          // Start Time Input
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _startTimeController,
+                  decoration: InputDecoration(
+                    labelText: 'Start Time',
+                    border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey.shade700),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey.shade400),
+                    ),
+                  ),
+                  keyboardType: TextInputType.datetime,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                  controller: _endTimeController,
+                  decoration: InputDecoration(
+                    labelText: 'End Time',
+                    border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey.shade700),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey.shade400),
+                    ),
+                  ),
+                  keyboardType: TextInputType.datetime,
+                ),
+              ),
+            ],
+          ),
+
+         /* const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _endTimeController,
+                  decoration: InputDecoration(
+                    labelText: 'End Time',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.datetime,
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.access_time),
+                onPressed: () => _selectTime(_endTimeController),
+              ),
+            ],
+          ),*/
+
+          const SizedBox(height: 10),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  widget.cue.text = _textController.text;
+
+                  // Convert the start and end times from the text fields back to Duration
+                  widget.cue.start = _stringToDuration(_startTimeController.text);
+                  widget.cue.end = _stringToDuration(_endTimeController.text);
+
+                  widget.onSave( widget.cue); // Notify the parent to save changes
+
+                  // Convert updated cues to string
+                  final updatedCuesString = _convertCuesToString(widget.controller.cues);
+
+                  // Call the updateCues method to save in the database
+                  widget.controller.updateCues(updatedCuesString).then((_) {
+                    // Successfully updated in database, update UI
+                    widget.controller.refreshCues();
+                  }).catchError((error) {
+                    // Handle error (show error message)
+                    AppSnackBar.showErrorToast(context, message: 'Failed to update cues');
+                  });
+
+                  widget.onCancel(); // Exit edit mode
+                },
+                child: Text('Save'),
+              ),
+              const SizedBox(width: 10,),
+              ElevatedButton(
+                onPressed: widget.onCancel,
+                child: Text('Cancel'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _SubtitlesSection extends StatefulWidget {
   final ViewNoteController controller;
@@ -474,8 +846,6 @@ class __SubtitlesSectionState extends State<_SubtitlesSection> {
     );
   }
 }
-
-
 
 class _Loading extends StatelessWidget {
   @override

@@ -40,6 +40,7 @@ class AudioPlayerViewController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // print("Audio_player_init: cues: $cues");
 
     player.setAudioSource(audioSource);
     player.setSpeed(speed.value.value);
@@ -296,7 +297,7 @@ class SubtitleManager {
 
   // Remove a cue based on sequence number
   void removeCue(int seqNumber) {
-    cues.removeWhere((cue) => cue.seqNumber == seqNumber);
+    cues.removeWhere((cue) => cue.sequence == seqNumber);
   }
 
   // Set current position, trigger subtitle update

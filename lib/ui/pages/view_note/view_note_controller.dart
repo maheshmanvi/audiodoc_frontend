@@ -38,7 +38,6 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
 
   late AudioPlayerViewController audioPlayerViewController;
 
-
   ViewNoteController(this.context, {required this.id}) {
     tabController = TabController(length: 3, vsync: this);
   }
@@ -60,6 +59,7 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
   void onInit() {
     super.onInit();
     fetchNote();
+    // initializeCues();
   }
 
   final initLoadState = DataState.rxInitial<NoteVm>();
@@ -367,10 +367,169 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
     }
   }
 
-  void refreshCues(){
+// -----------------------------------------------------------------------------
 
+  /* // Add new cue
+  void addCue(int index, Cue newCue) {
+    cues.insert(index, newCue);
+    _updateSequence(index);
+    updateCuesList();
+    refreshCues();
+  }
+
+  // Delete a cue
+  void removeCue(int index) {
+    print("object");
+    cues.removeAt(index);
+    _updateSequence(index);
+    updateCuesList();
+    refreshCues();
+  }
+
+  void updateCue(int cueId, Cue updatedCue) {
+    // Find and update the cue in the list by its ID or sequence
+    final index = cues.indexWhere((cue) => cue.sequence == cueId);
+    if (index != -1) {
+      cues[index] = updatedCue;
+      update(); // Notify listeners
+    }
+  }
+
+  // Update sequence numbers
+  void _updateSequence(int startIndex) {
+    for (int i = startIndex; i < cues.length; i++) {
+      cues[i].updateSequence(i + 1);
+    }
+  }
+
+  // Update note's cue string
+  void updateCuesList() {
+    final cuesString = cues.map((cue) => cue.toString()).join("\n");
+    print("updateCuesList: cuesString = $cuesString");
+    print("updateCuesList: cues = ${note.recording.cues}");
+    note.recording.cues = cuesString;
+    update();
+  }*/
+
+
+  Color getSpeakerColor(String speaker) {
+    switch (speaker) {
+      case 'Speaker 1':
+        return Colors.blue;
+      case 'Speaker 2':
+        return Colors.green;
+      case 'Speaker 3':
+        return Colors.red;
+      case 'Speaker 4':
+        return Colors.purple;
+      case 'Speaker 5':
+        return Colors.orange;
+      case 'Speaker 6':
+        return Colors.cyan;
+      case 'Speaker 7':
+        return Colors.teal;
+      case 'Speaker 8':
+        return Colors.brown;
+      case 'Speaker 9':
+        return Colors.indigo;
+      case 'Speaker 10':
+        return Colors.amber;
+      default:
+        return Colors.black;
+    }
+  }
+
+  Color getBackgroundColor(String speaker) {
+    switch (speaker) {
+      case 'Speaker 1':
+        return Colors.blue.shade50;
+      case 'Speaker 2':
+        return Colors.green.shade50;
+      case 'Speaker 3':
+        return Colors.red.shade50;
+      case 'Speaker 4':
+        return Colors.purple.shade50;
+      case 'Speaker 5':
+        return Colors.orange.shade50;
+      case 'Speaker 6':
+        return Colors.cyan.shade50;
+      case 'Speaker 7':
+        return Colors.teal.shade50;
+      case 'Speaker 8':
+        return Colors.brown.shade50;
+      case 'Speaker 9':
+        return Colors.indigo.shade50;
+      case 'Speaker 10':
+        return Colors.amber.shade50;
+      default:
+        return Colors.grey.shade200;
+    }
+  }
+
+  String extractSpeaker(String text) {
+    final speakerRegEx = RegExp(r'Speaker (\d+):\s*');
+    final match = speakerRegEx.firstMatch(text);
+    if (match != null) {
+      return 'Speaker ${match.group(1)}';
+    }
+    return 'Unknown Speaker';
   }
 
 
+  String formatDurationWithoutMilliSeconds(Duration duration) {
+    return "${duration.inMinutes.remainder(60).toString().padLeft(2, '0')}:${duration.inSeconds.remainder(60).toString().padLeft(2, '0')}";
+  }
+
+  String formatDurationWithMilliSeconds(Duration duration) {
+    return "${duration.inMinutes.remainder(60).toString().padLeft(2, '0')}:${duration.inSeconds.remainder(60).toString().padLeft(2, '0')}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}";
+  }
+
+
+  var cues = <Cue>[].obs;
+  final RxMap<int, String> speakerMap = <int, String>{}.obs;
+  final RxInt numberOfSpeakers = 0.obs;
+
+  void initializeCues() {
+    cues.value = note.recording.getCues();
+    speakerMap.clear();
+    for (var cue in cues) {
+      if (!speakerMap.containsKey(cue.speakerNumber)) {
+        speakerMap[cue.speakerNumber] = cue.speakerName;
+      }
+    }
+    numberOfSpeakers.value = speakerMap.length;
+    print("initializeCues: ${note.title}\nspeakerMap:");
+    speakerMap.forEach((speakerNumber, speakerName) {
+      print("$speakerNumber: $speakerName");
+    });
+    print("numberOfSpeakers: $numberOfSpeakers");
+  }
+
+  void refreshCues() {
+    final audioPlayerViewController = Get.find<AudioPlayerViewController>();
+    if (note.recording.cues != null) {
+      final newCues = note.recording.getCues();
+      audioPlayerViewController.cues.clear();
+      audioPlayerViewController.cues.addAll(newCues);
+      AppSnackBar.showSuccessToast(context, message: 'Cues refreshed successfully');
+    } else {
+      AppSnackBar.showToast(context, message: 'No cues available to refresh');
+    }
+  }
+
+  var editingCueId = Rx<int?>(null);
+
+  void editCue(int sequence) {
+    editingCueId.value = sequence;
+    print("Editing Cue ID: ${editingCueId.value}");
+  }
+
+  void removeCue(int index) {
+    // ddhwdu
+  }
+
+  void updateCue(int cueId, Cue updatedCue) {
+    // dwdwd
+  }
 
 }
