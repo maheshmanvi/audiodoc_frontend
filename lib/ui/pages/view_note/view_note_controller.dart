@@ -346,7 +346,7 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
       // Create an UpdateCuesRequest for the cue update
       UpdateCuesRequest updateCuesRequest = UpdateCuesRequest(
         noteId: id,
-        cues: cues,  // Use the subtitle text as the cue
+        cues: cues,
       );
 
       // Send the UpdateCuesRequest to the use case to update the cues
@@ -355,6 +355,11 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
 
       // If the cues are updated, update the cue text in the note object
       note.recording.cues = cues;
+
+      // Verify updated cues
+      if (note.recording.cues == null) {
+        throw Exception("note.recording.cues is null after update");
+      }
 
       AppSnackBar.showSuccessToast(context, message: 'Subtitles (Cues) updated successfully');
       fetchNote();
@@ -509,6 +514,9 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
     final audioPlayerViewController = Get.find<AudioPlayerViewController>();
     if (note.recording.cues != null) {
       final newCues = note.recording.getCues();
+
+      print("New cues fetched: ${newCues.toString()}");
+
       audioPlayerViewController.cues.clear();
       audioPlayerViewController.cues.addAll(newCues);
       AppSnackBar.showSuccessToast(context, message: 'Cues refreshed successfully');
@@ -525,11 +533,71 @@ class ViewNoteController extends GetxController with GetSingleTickerProviderStat
   }
 
   void removeCue(int index) {
-    // ddhwdu
+
+    // Validating the index
+    if (index < 0 || index >= cues.length) {
+      print("Invalid index: $index");
+      return;
+    }
+
+    print("Removing cue: Index $index");
+    print("Current cues: ${cues.toString()}");
+    print("The cue length before is = ${cues.length}");
+
+    cues.removeAt(index);
+
+    print("The cue length after is = ${cues.length}");
+
+    // Update the sequence numbers for remaining cues
+    for (int i = 0; i < cues.length; i++) {
+      cues[i].updateSequence(i + 1); // Sequences are 1-based
+    }
+
+    // Convert updated cues to string
+    final updatedCuesString = _convertCuesToString(cues);
+    print("Updated Cues String: $updatedCuesString");
+
+    // Call the updateCues method to save in the database
+    updateCues(updatedCuesString).then((_) {
+      // Successfully updated in database, update UI
+      print("Removed cue successfully at the index $index");
+      print("Cues before refresh: ${cues.toString()}");
+      refreshCues();
+    }).catchError((error) {
+      // Handle error (show error message)
+      // AppSnackBar.showErrorToast(context, message: 'Failed to update cues, ${error.toString()}');
+    });
+
   }
 
   void updateCue(int cueId, Cue updatedCue) {
     // dwdwd
+  }
+
+  // Helper method to convert cue list to string format
+  String _convertCuesToString(List<Cue> cues) {
+    final cueStrings = cues.map((cue) {
+      final start = _durationToString(cue.start);
+      final end = _durationToString(cue.end);
+      return '${cue.sequence}\n${_convertTimeFormat(start)} --> ${_convertTimeFormat(end)}\n${cue.text}\n';
+    }).join('\n');
+
+    return cueStrings;
+  }
+
+  // Converts a Duration to a string in "HH:MM:SS" format
+  String _durationToString(Duration duration) {
+    final hours = duration.inHours.toString().padLeft(2, '0');
+    final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    final milliseconds = (duration.inMilliseconds % 1000).toString().padLeft(3, '0');
+
+    return '$hours:$minutes:$seconds.$milliseconds';
+  }
+
+  // Convert dot (.) to comma (,) for time format used in the database
+  String _convertTimeFormat(String time) {
+    return time.replaceAll('.', ',');
   }
 
 }

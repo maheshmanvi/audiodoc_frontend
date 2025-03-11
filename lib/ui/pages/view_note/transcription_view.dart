@@ -449,7 +449,9 @@ class _MessageCardState extends State<_MessageCard> {
                             ],
                           ),
                           onTap: (){
-                            widget.onRemove();
+                            final index = controller.cues.indexOf(cue);
+                            print("Removing cue of sequence ${cue.sequence} at index: $index");
+                            controller.removeCue(index);
                           },
                         ),
                       ],
@@ -571,7 +573,7 @@ class _EditingContainerState extends State<_EditingContainer> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade300,
+        color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
